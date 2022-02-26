@@ -1,24 +1,18 @@
 // use chrono::{DateTime, Local};
+use derive_more::Display;
 use serde::Serialize;
 use serde_with::SerializeDisplay;
 
-#[derive(Debug, Clone, SerializeDisplay)]
+#[derive(Debug, Clone, Display, SerializeDisplay)]
 pub enum SearchFacet {
+    #[display(fmt = "categories:'{}'", _0)]
     Category(String),
+    #[display(fmt = "versions:'{}'", _0)]
     Version(String),
+    #[display(fmt = "license:'{}'", _0)]
     License(String),
+    #[display(fmt = "project_type:'{}'", _0)]
     ProjectType(String),
-}
-
-impl std::fmt::Display for SearchFacet {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str(&match *self {
-            Self::Category(ref value) => format!("categories:'{}'", value),
-            Self::Version(ref value) => format!("versions:'{}'", value),
-            Self::License(ref value) => format!("license:'{}'", value),
-            Self::ProjectType(ref value) => format!("project_type:'{}'", value),
-        })
-    }
 }
 
 impl SearchFacet {
