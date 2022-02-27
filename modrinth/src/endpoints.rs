@@ -1,9 +1,9 @@
-use crate::{base62::Base62, query::*, response::*};
+use crate::prelude::*;
 use derive_more::Display;
 use serde_with::SerializeDisplay;
 use thiserror::Error;
 
-const API_BASE: &str = "https://api.modrinth.com/v2/";
+// const API_BASE: &str = "https://api.modrinth.com/v2/";
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -21,15 +21,14 @@ fn get<T>(endpoint: &str, token: Option<&str>) -> Result<T>
 where
     T: serde::de::DeserializeOwned,
 {
-    let request = ureq::get(endpoint);
+    let mut request = ureq::get(endpoint);
 
     if let Some(token) = token {
-        request.set("Authorization", token);
+        request = request.set("Authorization", token);
     }
 
-    let response = ureq::get(endpoint).call()?;
-    let string = response.into_string()?;
-    let deserializer = &mut serde_json::Deserializer::from_str(&string);
+    let content = request.call()?.into_reader();
+    let deserializer = &mut serde_json::Deserializer::from_reader(content);
 
     Ok(serde_path_to_error::deserialize(deserializer)?)
 }
