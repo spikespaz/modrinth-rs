@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{prelude::*, query_string::JsonQueryParams};
 use derive_more::Display;
 use serde_with::SerializeDisplay;
 use thiserror::Error;
@@ -33,14 +33,20 @@ where
     Ok(serde_path_to_error::deserialize(deserializer)?)
 }
 
-pub fn get_search() -> ! {
-    todo!();
+pub fn get_search(params: &SearchParams, token: Option<&str>) -> Result<SearchResults> {
+    get(
+        &format!(
+            "https://api.modrinth.com/v2/search?{}",
+            &params.to_query_string()
+        ),
+        token,
+    )
 }
 
-pub fn get_project(identifier: &ProjectIdentifier) -> Result<Project> {
+pub fn get_project(identifier: &ProjectIdentifier, token: Option<&str>) -> Result<Project> {
     get(
         &format!("https://api.modrinth.com/v2/project/{}", identifier),
-        None,
+        token,
     )
 }
 

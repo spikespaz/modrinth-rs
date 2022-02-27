@@ -1,4 +1,4 @@
-// use chrono::{DateTime, Local};
+use crate::query_string::JsonQueryParams;
 use derive_more::Display;
 use serde::Serialize;
 use serde_with::SerializeDisplay;
@@ -66,3 +66,5 @@ pub struct SearchParams {
     pub limit: Option<usize>,
     // filters: Option<SearchFilters>,
 }
+
+impl JsonQueryParams<'_> for SearchParams {}

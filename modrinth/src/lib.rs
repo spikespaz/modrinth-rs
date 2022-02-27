@@ -1,6 +1,7 @@
 pub mod base62;
 pub mod endpoints;
 pub mod query;
+pub mod query_string;
 pub mod response;
 
 pub mod prelude {
