@@ -15,7 +15,7 @@ ureq = { version = "2.4", features = ["json"] }
 serde_path_to_error = "0.1"
 strum = { version = "0.24", features = ["derive"] }
 derive_more = "0.99"
-# getset = "0.1"
+getset = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
 base62 = "1.1"
 thiserror = "1.0"

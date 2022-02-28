@@ -1,6 +1,8 @@
 use crate::{prelude::*, query_string::JsonQueryParams};
 use derive_more::Display;
+use serde::de::DeserializeOwned;
 use serde_with::SerializeDisplay;
+use serde_path_to_error::Error as SerdePathError;
 use thiserror::Error;
 
 // const API_BASE: &str = "https://api.modrinth.com/v2/";
@@ -12,14 +14,14 @@ pub enum Error {
     #[error("there was an issue deserializing a response to JSON")]
     Io(#[from] std::io::Error),
     #[error("there was an issue fitting JSON to a strong type")]
-    Json(#[from] serde_path_to_error::Error<serde_json::Error>),
+    Json(#[from] SerdePathError<serde_json::Error>),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
 
 fn get<T>(endpoint: &str, token: Option<&str>) -> Result<T>
 where
-    T: serde::de::DeserializeOwned,
+    T: DeserializeOwned,
 {
     let mut request = ureq::get(endpoint);
 
@@ -41,6 +43,10 @@ pub fn get_search(params: &SearchParams, token: Option<&str>) -> Result<SearchRe
         ),
         token,
     )
+}
+
+pub fn get_search_iter(params: SearchParams, token: Option<&str>) -> SearchResultsPaginator {
+    SearchResultsPaginator::new(params, token)
 }
 
 pub fn get_project(identifier: &ProjectIdentifier, token: Option<&str>) -> Result<Project> {
