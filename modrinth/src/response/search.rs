@@ -20,8 +20,12 @@ pub struct ProjectResult {
     pub description: String,
     pub categories: Vec<String>,
     pub versions: Vec<String>,
-    pub downloads: usize,
-    pub follows: usize,
+    // Should `downloads` and `follows`be a usize but the API returns -1 sometimes
+    // Reference:
+    // > `labrinth::models::projects::Project` and
+    // > `labrinth::database::models::project_item::Project`
+    pub downloads: isize,
+    pub follows: isize,
     pub icon_url: String,
     pub date_created: DateTime<Utc>,
     pub date_modified: DateTime<Utc>,
