@@ -1,8 +1,8 @@
 use crate::{prelude::*, query_string::JsonQueryParams};
 use derive_more::Display;
 use serde::de::DeserializeOwned;
-use serde_with::SerializeDisplay;
 use serde_path_to_error::Error as SerdePathError;
+use serde_with::SerializeDisplay;
 use thiserror::Error;
 
 // const API_BASE: &str = "https://api.modrinth.com/v2/";
@@ -60,4 +60,32 @@ pub fn get_project(identifier: &ProjectIdentifier, token: Option<&str>) -> Resul
 pub enum ProjectIdentifier {
     Id(Base62),
     Slug(String),
+}
+
+impl ProjectIdentifier {
+    pub fn id(other: Base62) -> Self {
+        Self::from(other)
+    }
+
+    pub fn slug<S>(other: S) -> Self
+    where
+        S: AsRef<str>,
+    {
+        Self::from(other)
+    }
+}
+
+impl From<Base62> for ProjectIdentifier {
+    fn from(other: Base62) -> Self {
+        Self::Id(other)
+    }
+}
+
+impl<S> From<S> for ProjectIdentifier
+where
+    S: AsRef<str>,
+{
+    fn from(other: S) -> Self {
+        Self::Slug(other.as_ref().to_owned())
+    }
 }
