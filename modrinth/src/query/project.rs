@@ -1,7 +1,51 @@
+use super::{get, Result};
 use crate::base62::Base62;
 use chrono::{DateTime, Utc};
+use derive_more::Display;
 use serde::{Deserialize, Serialize};
+use serde_with::SerializeDisplay;
 use strum::EnumString;
+
+pub fn get_project(identifier: &ProjectIdentifier, token: Option<&str>) -> Result<Project> {
+    get(
+        &format!("https://api.modrinth.com/v2/project/{}", identifier),
+        token,
+    )
+}
+
+#[derive(Debug, Clone, Display, SerializeDisplay)]
+pub enum ProjectIdentifier {
+    Id(Base62),
+    Slug(String),
+}
+
+impl ProjectIdentifier {
+    pub fn id(other: Base62) -> Self {
+        Self::from(other)
+    }
+
+    pub fn slug<S>(other: S) -> Self
+    where
+        S: AsRef<str>,
+    {
+        Self::from(other)
+    }
+}
+
+impl From<Base62> for ProjectIdentifier {
+    fn from(other: Base62) -> Self {
+        Self::Id(other)
+    }
+}
+
+impl<S> From<S> for ProjectIdentifier
+where
+    S: AsRef<str>,
+{
+    fn from(other: S) -> Self {
+        Self::Slug(other.as_ref().to_owned())
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Project {
