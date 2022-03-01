@@ -1,11 +1,17 @@
-use super::{get, Error, Result};
-use crate::{base62::Base62, query_string::JsonQueryParams};
+use std::collections::VecDeque;
+
 use chrono::{DateTime, Utc};
 use derive_more::Display;
 use getset::Getters;
 use serde::{Deserialize, Serialize};
 use serde_with::SerializeDisplay;
-use std::collections::VecDeque;
+
+use super::{
+    get,
+    projects::{ProjectType, SideSupport},
+    Error, Result,
+};
+use crate::{base62::Base62, query_string::JsonQueryParams};
 
 pub fn get_search(params: &SearchParams, token: Option<&str>) -> Result<SearchResults> {
     get(
@@ -20,6 +26,19 @@ pub fn get_search(params: &SearchParams, token: Option<&str>) -> Result<SearchRe
 pub fn get_search_iter(params: SearchParams, token: Option<&str>) -> SearchResultsPaginator {
     SearchResultsPaginator::new(params, token)
 }
+
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct SearchParams {
+    pub query: Option<String>,
+    /// <https://docs.modrinth.com/docs/tutorials/api_search/#facets>
+    pub facets: Option<SearchFacets>,
+    pub index: Option<SearchIndex>,
+    pub offset: Option<usize>,
+    pub limit: Option<usize>,
+    // filters: Option<SearchFilters>,
+}
+
+impl JsonQueryParams<'_> for SearchParams {}
 
 #[derive(Debug, Clone, Display, SerializeDisplay)]
 pub enum SearchFacet {
@@ -74,19 +93,6 @@ pub enum SearchIndex {
     Updated,
 }
 
-#[derive(Debug, Clone, Default, Serialize)]
-pub struct SearchParams {
-    pub query: Option<String>,
-    /// <https://docs.modrinth.com/docs/tutorials/api_search/#facets>
-    pub facets: Option<SearchFacets>,
-    pub index: Option<SearchIndex>,
-    pub offset: Option<usize>,
-    pub limit: Option<usize>,
-    // filters: Option<SearchFilters>,
-}
-
-impl JsonQueryParams<'_> for SearchParams {}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchResults {
     pub hits: VecDeque<ProjectResult>,
@@ -98,13 +104,14 @@ pub struct SearchResults {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProjectResult {
     pub project_id: Base62,
-    pub project_type: String,
+    pub project_type: ProjectType,
     pub slug: Option<String>,
     pub author: String,
     pub title: String,
     pub description: String,
     pub categories: Vec<String>,
     pub versions: Vec<String>,
+    pub latest_version: Option<String>,
     // Should `downloads` and `follows`be a usize but the API returns -1 sometimes
     // Reference:
     // > `labrinth::models::projects::Project` and
@@ -115,8 +122,8 @@ pub struct ProjectResult {
     pub date_created: DateTime<Utc>,
     pub date_modified: DateTime<Utc>,
     pub license: String,
-    pub client_side: String,
-    pub server_side: String,
+    pub client_side: SideSupport,
+    pub server_side: SideSupport,
     pub gallery: Vec<String>,
 }
 

@@ -1,10 +1,11 @@
-use super::{get, Result};
-use crate::base62::Base62;
 use chrono::{DateTime, Utc};
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 use serde_with::SerializeDisplay;
 use strum::EnumString;
+
+use super::{get, Result};
+use crate::base62::Base62;
 
 pub fn get_project(identifier: &ProjectIdentifier, token: Option<&str>) -> Result<Project> {
     get(
@@ -51,8 +52,9 @@ where
 pub struct Project {
     pub id: Base62,
     pub slug: Option<String>,
-    pub project_type: String,
+    pub project_type: ProjectType,
     pub team: Base62,
+    pub title: String,
     pub description: String,
     pub body: String,
     pub body_url: Option<String>,
@@ -61,8 +63,8 @@ pub struct Project {
     pub status: ProjectStatus,
     pub moderator_message: Option<ModeratorMessage>,
     pub license: ProjectLicense,
-    pub client_side: SideType,
-    pub server_side: SideType,
+    pub client_side: SideSupport,
+    pub server_side: SideSupport,
     pub downloads: usize,
     pub followers: usize,
     pub categories: Vec<String>,
@@ -79,6 +81,14 @@ pub struct Project {
 #[derive(Debug, Clone, EnumString, Serialize, Deserialize)]
 #[strum(serialize_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
+pub enum ProjectType {
+    Mod,
+    Modpack,
+}
+
+#[derive(Debug, Clone, EnumString, Serialize, Deserialize)]
+#[strum(serialize_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum ProjectStatus {
     Approved,
     Archived,
@@ -86,7 +96,6 @@ pub enum ProjectStatus {
     Draft,
     Unlisted,
     Processing,
-    // Unknown,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -105,11 +114,10 @@ pub struct ProjectLicense {
 #[derive(Debug, Clone, EnumString, Serialize, Deserialize)]
 #[strum(serialize_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
-pub enum SideType {
+pub enum SideSupport {
     Required,
     Optional,
     Unsupported,
-    // Unknown,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

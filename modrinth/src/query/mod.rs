@@ -1,7 +1,7 @@
-mod project;
+mod projects;
 mod search;
 
-pub use project::*;
+pub use projects::*;
 pub use search::*;
 
 use serde::de::DeserializeOwned;
