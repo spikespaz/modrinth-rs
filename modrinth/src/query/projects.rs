@@ -1,3 +1,5 @@
+use std::hash::Hash;
+
 use chrono::{DateTime, Utc};
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
@@ -14,7 +16,7 @@ pub fn get_project(identifier: &ProjectIdentifier, token: Option<&str>) -> Resul
     )
 }
 
-#[derive(Debug, Clone, Display, SerializeDisplay)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, SerializeDisplay)]
 pub enum ProjectIdentifier {
     Id(Base62),
     Slug(String),
@@ -48,7 +50,7 @@ where
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Project {
     pub id: Base62,
     pub slug: Option<String>,
@@ -57,6 +59,7 @@ pub struct Project {
     pub title: String,
     pub description: String,
     pub body: String,
+    #[deprecated]
     pub body_url: Option<String>,
     pub published: DateTime<Utc>,
     pub updated: DateTime<Utc>,
@@ -78,7 +81,7 @@ pub struct Project {
     pub gallery: Vec<GalleryItem>,
 }
 
-#[derive(Debug, Clone, EnumString, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize, Deserialize)]
 #[strum(serialize_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
 pub enum ProjectType {
@@ -86,7 +89,7 @@ pub enum ProjectType {
     Modpack,
 }
 
-#[derive(Debug, Clone, EnumString, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize, Deserialize)]
 #[strum(serialize_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
 pub enum ProjectStatus {
@@ -98,20 +101,20 @@ pub enum ProjectStatus {
     Processing,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ModeratorMessage {
     pub message: String,
     pub body: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ProjectLicense {
     pub id: String,
     pub name: String,
     pub url: Option<String>,
 }
 
-#[derive(Debug, Clone, EnumString, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize, Deserialize)]
 #[strum(serialize_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
 pub enum SideSupport {
@@ -120,14 +123,14 @@ pub enum SideSupport {
     Unsupported,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DonationLink {
     pub id: String,
     pub platform: String,
     pub url: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct GalleryItem {
     pub url: String,
     pub featured: bool,

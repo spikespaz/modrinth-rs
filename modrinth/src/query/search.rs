@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, hash::Hash};
 
 use chrono::{DateTime, Utc};
 use derive_more::Display;
@@ -27,7 +27,7 @@ pub fn get_search_iter(params: SearchParams, token: Option<&str>) -> SearchResul
     SearchResultsPaginator::new(params, token)
 }
 
-#[derive(Debug, Clone, Default, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, Serialize)]
 pub struct SearchParams {
     pub query: Option<String>,
     /// <https://docs.modrinth.com/docs/tutorials/api_search/#facets>
@@ -40,7 +40,7 @@ pub struct SearchParams {
 
 impl JsonQueryParams<'_> for SearchParams {}
 
-#[derive(Debug, Clone, Display, SerializeDisplay)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, SerializeDisplay)]
 pub enum SearchFacet {
     #[display(fmt = "categories:'{}'", _0)]
     Category(String),
@@ -84,7 +84,7 @@ impl SearchFacet {
 
 pub type SearchFacets = Vec<Vec<SearchFacet>>;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum SearchIndex {
     Relevance,
     Downloads,
@@ -93,7 +93,7 @@ pub enum SearchIndex {
     Updated,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct SearchResults {
     pub hits: VecDeque<ProjectResult>,
     pub offset: usize,
@@ -101,7 +101,7 @@ pub struct SearchResults {
     pub total_hits: usize,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ProjectResult {
     pub project_id: Base62,
     pub project_type: ProjectType,

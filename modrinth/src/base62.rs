@@ -1,6 +1,8 @@
+use std::hash::Hash;
+
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Base62(u64);
 
 impl Base62 {
