@@ -11,7 +11,10 @@ use super::{
     projects::{ProjectType, SideSupport},
     Error, Result,
 };
-use crate::{base62::Base62, query_string::JsonQueryParams};
+use crate::{
+    base62::Base62,
+    query_string::{JsonQueryParams, SearchFilters},
+};
 
 pub fn get_search(params: &SearchParams, token: Option<&str>) -> Result<SearchResults> {
     get(
@@ -31,11 +34,13 @@ pub fn get_search_iter(params: SearchParams, token: Option<&str>) -> SearchResul
 pub struct SearchParams {
     pub query: Option<String>,
     /// <https://docs.modrinth.com/docs/tutorials/api_search/#facets>
-    pub facets: Option<SearchFacets>,
+    pub facets: Option<SearchFilters<SearchFacet>>,
     pub index: Option<SearchIndex>,
     pub offset: Option<usize>,
     pub limit: Option<usize>,
-    // filters: Option<SearchFilters>,
+    pub filters: Option<SearchFilters<String>>,
+    // #[deprecated]
+    // pub version: Option<SearchFilters<String>>,
 }
 
 impl JsonQueryParams<'_> for SearchParams {}
@@ -50,6 +55,8 @@ pub enum SearchFacet {
     License(String),
     #[display(fmt = "project_type:'{}'", _0)]
     ProjectType(String),
+    #[display(fmt = "{}:'{}'", _0, _1)]
+    Custom(String, String),
 }
 
 impl SearchFacet {
@@ -79,6 +86,14 @@ impl SearchFacet {
         S: AsRef<str>,
     {
         Self::ProjectType(value.as_ref().to_owned())
+    }
+
+    pub fn custom<N, S>(name: N, value: S) -> Self
+    where
+        N: AsRef<str>,
+        S: AsRef<str>,
+    {
+        Self::Custom(name.as_ref().to_owned(), value.as_ref().to_owned())
     }
 }
 

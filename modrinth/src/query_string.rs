@@ -25,3 +25,5 @@ where
         encoder.finish()
     }
 }
+
+pub type SearchFilters<T> = Vec<Vec<T>>;
