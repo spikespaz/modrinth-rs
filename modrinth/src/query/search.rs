@@ -2,7 +2,6 @@ use std::{collections::VecDeque, hash::Hash};
 
 use chrono::{DateTime, Utc};
 use derive_more::Display;
-use getset::Getters;
 use serde::{Deserialize, Serialize};
 use serde_with::SerializeDisplay;
 use strum::EnumString;
@@ -10,7 +9,7 @@ use strum::EnumString;
 use super::{
     get,
     projects::{ProjectType, SideSupport},
-    Error, Result,
+    Result,
 };
 use crate::{
     base62::Base62,
@@ -143,14 +142,13 @@ pub struct ProjectResult {
     pub gallery: Vec<String>,
 }
 
-#[derive(Debug, Getters)]
+#[derive(Debug)]
 pub struct SearchResultsPaginator<'a> {
     params: SearchParams,
     token: Option<&'a str>,
     results: VecDeque<ProjectResult>,
     total_hits: Option<usize>,
-    #[getset(get = "pub")]
-    error: Option<Error>,
+    errored: bool,
 }
 
 impl<'a> SearchResultsPaginator<'a> {
@@ -160,15 +158,19 @@ impl<'a> SearchResultsPaginator<'a> {
             token,
             results: VecDeque::new(),
             total_hits: None,
-            error: None,
+            errored: false,
         }
     }
 }
 
 impl<'a> Iterator for SearchResultsPaginator<'a> {
-    type Item = ProjectResult;
+    type Item = Result<ProjectResult>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        if self.errored {
+            return None;
+        }
+
         if self.results.is_empty() {
             let results = if self.total_hits.is_none() {
                 let mut params = self.params.clone();
@@ -181,8 +183,8 @@ impl<'a> Iterator for SearchResultsPaginator<'a> {
             let mut results = match results {
                 Ok(result) => result,
                 Err(error) => {
-                    self.error = Some(error);
-                    return None;
+                    self.errored = true;
+                    return Some(Err(error));
                 }
             };
 
@@ -194,7 +196,7 @@ impl<'a> Iterator for SearchResultsPaginator<'a> {
             self.params.offset = Some(self.params.offset.unwrap_or(0) + self.results.len());
         }
 
-        self.results.pop_front()
+        self.results.pop_front().map(Ok)
     }
 
     /// Requires one item to have been recieved with [`Self::next`],
