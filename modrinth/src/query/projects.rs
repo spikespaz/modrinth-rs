@@ -82,16 +82,16 @@ pub struct Project {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize, Deserialize)]
-#[strum(serialize_all = "lowercase")]
-#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum ProjectType {
     Mod,
     Modpack,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize, Deserialize)]
-#[strum(serialize_all = "lowercase")]
-#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum ProjectStatus {
     Approved,
     Archived,
@@ -115,8 +115,8 @@ pub struct ProjectLicense {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize, Deserialize)]
-#[strum(serialize_all = "lowercase")]
-#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum SideSupport {
     Required,
     Optional,

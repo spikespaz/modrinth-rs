@@ -5,6 +5,7 @@ use derive_more::Display;
 use getset::Getters;
 use serde::{Deserialize, Serialize};
 use serde_with::SerializeDisplay;
+use strum::EnumString;
 
 use super::{
     get,
@@ -97,9 +98,9 @@ impl SearchFacet {
     }
 }
 
-pub type SearchFacets = Vec<Vec<SearchFacet>>;
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize)]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum SearchIndex {
     Relevance,
     Downloads,

@@ -8,6 +8,7 @@ fn main() {
             index: None,
             offset: None,
             limit: None,
+            filters: None,
         },
         None,
     );
