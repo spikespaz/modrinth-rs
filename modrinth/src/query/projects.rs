@@ -50,6 +50,9 @@ where
     }
 }
 
+/// The API specification states that the fields `project_type`, `client_side`, and `server_side` are required,
+/// and by implication, that it must match one of the variants. However, this has been seen to not be the case.
+/// There is [`ProjectType::Unknown`] and [`SideSupport::Unknown`] to mitigate this issue.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Project {
     pub id: Base62,
@@ -99,6 +102,7 @@ pub enum ProjectStatus {
     Draft,
     Unlisted,
     Processing,
+    Unknown,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -121,6 +125,7 @@ pub enum SideSupport {
     Required,
     Optional,
     Unsupported,
+    Unknown,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
