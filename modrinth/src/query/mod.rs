@@ -18,6 +18,8 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error("there was an issue fitting JSON to a strong type")]
     Json(#[from] SerdePathError<serde_json::Error>),
+    #[error("the parameters to a function were invalid")]
+    Input(&'static str),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

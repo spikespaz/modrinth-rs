@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use strum::EnumString;
 
-use super::{get, projects::ProjectIdentifier, Result};
+use super::{get, projects::ProjectIdentifier, Error, Result};
 use crate::base62::Base62;
 
 pub fn get_project_versions(
@@ -13,6 +13,38 @@ pub fn get_project_versions(
 ) -> Result<Vec<ProjectVersion>> {
     get(
         &format!("https://api.modrinth.com/v2/project/{}/version", identifier),
+        token,
+    )
+}
+
+pub fn get_version(identifier: &Base62, token: Option<&str>) -> Result<ProjectVersion> {
+    get(
+        &format!("https://api.modrinth.com/v2/version/{}", identifier),
+        token,
+    )
+}
+
+pub fn get_version_by_hash(hash: &FileHashes, token: Option<&str>) -> Result<ProjectVersion> {
+    get(
+        &match hash {
+            FileHashes {
+                sha512: Some(hash), ..
+            } => format!(
+                "https://api.modrinth.com/v2/version_file/{}?algorithm=sha512",
+                hash
+            ),
+            FileHashes {
+                sha1: Some(hash), ..
+            } => format!(
+                "https://api.modrinth.com/v2/version_file/{}?algorithm=sha1",
+                hash
+            ),
+            _ => {
+                return Err(Error::Input(
+                    "the provided 'FileHashes' must have at minimum one `Some` value",
+                ))
+            }
+        },
         token,
     )
 }
@@ -58,6 +90,28 @@ pub struct VersionFile {
 pub struct FileHashes {
     pub sha512: Option<String>,
     pub sha1: Option<String>,
+}
+
+impl FileHashes {
+    pub fn sha512<S>(hash: S) -> Self
+    where
+        S: AsRef<str>,
+    {
+        Self {
+            sha512: Some(hash.as_ref().to_owned()),
+            sha1: None,
+        }
+    }
+
+    pub fn sha1<S>(hash: S) -> Self
+    where
+        S: AsRef<str>,
+    {
+        Self {
+            sha512: None,
+            sha1: Some(hash.as_ref().to_owned()),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
