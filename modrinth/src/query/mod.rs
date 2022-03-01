@@ -1,8 +1,10 @@
 mod projects;
 mod search;
+mod versions;
 
 pub use projects::*;
 pub use search::*;
+pub use versions::*;
 
 use serde::de::DeserializeOwned;
 use serde_path_to_error::Error as SerdePathError;
