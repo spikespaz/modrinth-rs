@@ -2,6 +2,8 @@ mod projects;
 mod search;
 mod versions;
 
+use std::io::Read;
+
 pub use projects::*;
 pub use search::*;
 pub use versions::*;
@@ -14,10 +16,13 @@ use thiserror::Error;
 pub enum Error {
     #[error("there was an issue making the request")]
     Ureq(#[from] ureq::Error),
-    #[error("there was an issue deserializing a response to JSON")]
+    #[error("there was an issue processing a response")]
     Io(#[from] std::io::Error),
     #[error("there was an issue fitting JSON to a strong type")]
-    Json(#[from] SerdePathError<serde_json::Error>),
+    Json {
+        path: SerdePathError<serde_json::Error>,
+        data: String,
+    },
     #[error("the parameters to a function were invalid")]
     Input(&'static str),
 }
@@ -34,8 +39,14 @@ where
         request = request.set("Authorization", token);
     }
 
-    let content = request.call()?.into_reader();
-    let deserializer = &mut serde_json::Deserializer::from_reader(content);
+    let mut content = String::new();
 
-    Ok(serde_path_to_error::deserialize(deserializer)?)
+    request.call()?.into_reader().read_to_string(&mut content)?;
+
+    let deserializer = &mut serde_json::Deserializer::from_str(&content);
+
+    serde_path_to_error::deserialize(deserializer).map_err(|error| Error::Json {
+        path: error,
+        data: content,
+    })
 }
