@@ -9,13 +9,6 @@ use strum::EnumString;
 use super::{get, Result};
 use crate::base62::Base62;
 
-pub fn get_project(identifier: &ProjectIdentifier, token: Option<&str>) -> Result<Project> {
-    get(
-        &format!("https://api.modrinth.com/v2/project/{}", identifier),
-        token,
-    )
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Display, SerializeDisplay)]
 pub enum ProjectIdentifier {
     Id(Base62),
