@@ -95,6 +95,7 @@ impl SearchFacet {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize)]
+#[serde(deny_unknown_fields)]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum SearchIndex {
@@ -106,6 +107,7 @@ pub enum SearchIndex {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SearchResults {
     pub hits: VecDeque<ProjectResult>,
     pub offset: usize,
@@ -114,6 +116,7 @@ pub struct SearchResults {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ProjectResult {
     pub project_id: Base62,
     pub project_type: ProjectType,
@@ -178,7 +181,7 @@ impl<'a> Iterator for SearchResultsPaginator<'a> {
             };
 
             let mut results = match results {
-                Ok(result) => result,
+                Ok(results) => results,
                 Err(error) => {
                     self.errored = true;
                     return Some(Err(error));

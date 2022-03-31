@@ -46,6 +46,7 @@ where
 /// and by implication, that it must match one of the variants. However, this has been seen to not be the case.
 /// There is [`ProjectType::Unknown`] and [`SideSupport::Unknown`] to mitigate this issue.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Project {
     pub id: Base62,
     pub slug: Option<String>,
@@ -77,6 +78,7 @@ pub struct Project {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum ProjectType {
@@ -85,6 +87,7 @@ pub enum ProjectType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum ProjectStatus {
@@ -98,12 +101,14 @@ pub enum ProjectStatus {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ModeratorMessage {
     pub message: String,
     pub body: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ProjectLicense {
     pub id: String,
     pub name: String,
@@ -111,6 +116,7 @@ pub struct ProjectLicense {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum SideSupport {
@@ -121,6 +127,7 @@ pub enum SideSupport {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DonationLink {
     pub id: String,
     pub platform: String,
@@ -128,6 +135,7 @@ pub struct DonationLink {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GalleryItem {
     pub url: String,
     pub featured: bool,
