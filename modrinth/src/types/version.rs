@@ -4,9 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use strum::EnumString;
 
-use crate::{
-    base62::Base62
-};
+use crate::base62::Base62;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ProjectVersion {
@@ -29,6 +27,7 @@ pub struct ProjectVersion {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum VersionType {
@@ -38,6 +37,7 @@ pub enum VersionType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct VersionFile {
     pub hashes: FileHashes,
     pub url: String,
@@ -46,6 +46,7 @@ pub struct VersionFile {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FileHashes {
     pub sha512: Option<String>,
     pub sha1: Option<String>,
@@ -53,8 +54,8 @@ pub struct FileHashes {
 
 impl FileHashes {
     pub fn sha512<S>(hash: S) -> Self
-        where
-            S: AsRef<str>,
+    where
+        S: AsRef<str>,
     {
         Self {
             sha512: Some(hash.as_ref().to_owned()),
@@ -63,8 +64,8 @@ impl FileHashes {
     }
 
     pub fn sha1<S>(hash: S) -> Self
-        where
-            S: AsRef<str>,
+    where
+        S: AsRef<str>,
     {
         Self {
             sha512: None,
@@ -74,6 +75,7 @@ impl FileHashes {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct VersionDependency {
     pub version_id: Option<String>,
     pub project_id: Option<Base62>,
@@ -81,6 +83,7 @@ pub struct VersionDependency {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum DependencyType {
@@ -90,6 +93,7 @@ pub enum DependencyType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, EnumString, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum LoaderSupport {
