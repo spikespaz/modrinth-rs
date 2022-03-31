@@ -1,102 +1,83 @@
-mod search;
-
-use std::io::Read;
-
-use serde::de::DeserializeOwned;
-use serde_path_to_error::Error as SerdePathError;
-use thiserror::Error;
+// mod search;
 
 use crate::{
     base62::Base62,
-    types::{ProjectIdentifier, Project, ProjectVersion, FileHashes}
+    types::{FileHashes, Project, ProjectIdentifier, ProjectVersion},
 };
 
-pub use search::*;
+// pub use search::*;
 
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("there was an issue making the request")]
-    Ureq(#[from] ureq::Error),
-    #[error("there was an issue processing a response")]
-    Io(#[from] std::io::Error),
-    #[error("there was an issue fitting JSON to a strong type")]
-    Json {
-        path: SerdePathError<serde_json::Error>,
-        data: String,
-    },
-    #[error("the parameters to a function were invalid")]
-    Input(&'static str),
+static MODRINTH_ENDPOINT: &str = "https://api.modrinth.com/v2/";
+
+#[derive(Clone, Debug)]
+pub struct Client {
+    inner: surf::Client,
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
-
-pub(crate) fn get<T>(endpoint: &str, token: Option<&str>) -> Result<T>
+impl Client {
+    pub fn new<S>(token: Option<S>) -> Result<Self, <surf::Client as TryFrom<surf::Config>>::Error>
     where
-        T: DeserializeOwned,
-{
-    let mut request = ureq::get(endpoint);
+        S: AsRef<str>,
+    {
+        let mut config = surf::Config::new();
 
-    if let Some(token) = token {
-        request = request.set("Authorization", token);
+        config = config.set_base_url(surf::Url::parse(MODRINTH_ENDPOINT).unwrap());
+
+        if let Some(token) = token {
+            config = config.add_header("Authorization", token.as_ref()).unwrap();
+        }
+
+        Ok(Self {
+            inner: config.try_into()?,
+        })
     }
 
-    let mut content = String::new();
+    pub fn with_config(
+        mut config: surf::Config,
+    ) -> Result<Self, <surf::Client as TryFrom<surf::Config>>::Error> {
+        config = config.set_base_url(surf::Url::parse(MODRINTH_ENDPOINT).unwrap());
 
-    request.call()?.into_reader().read_to_string(&mut content)?;
+        Ok(Self {
+            inner: config.try_into()?,
+        })
+    }
 
-    let deserializer = &mut serde_json::Deserializer::from_str(&content);
+    pub async fn get_project(&self, identifier: &ProjectIdentifier) -> surf::Result<Project> {
+        self.inner
+            .get(&format!("project/{}", identifier))
+            .recv_json()
+            .await
+    }
 
-    serde_path_to_error::deserialize(deserializer).map_err(|error| Error::Json {
-        path: error,
-        data: content,
-    })
-}
+    pub async fn get_project_versions(
+        &self,
+        identifier: &ProjectIdentifier,
+    ) -> surf::Result<Vec<ProjectVersion>> {
+        self.inner
+            .get(&format!("version/{}", identifier))
+            .recv_json()
+            .await
+    }
 
-pub fn get_project(identifier: &ProjectIdentifier, token: Option<&str>) -> Result<Project> {
-    get(
-        &format!("https://api.modrinth.com/v2/project/{}", identifier),
-        token,
-    )
-}
+    pub async fn get_version(&self, identifier: &Base62) -> surf::Result<ProjectVersion> {
+        self.inner
+            .get(&format!("version/{}", identifier))
+            .recv_json()
+            .await
+    }
 
-pub fn get_project_versions(
-    identifier: &ProjectIdentifier,
-    token: Option<&str>,
-) -> Result<Vec<ProjectVersion>> {
-    get(
-        &format!("https://api.modrinth.com/v2/project/{}/version", identifier),
-        token,
-    )
-}
-
-pub fn get_version(identifier: &Base62, token: Option<&str>) -> Result<ProjectVersion> {
-    get(
-        &format!("https://api.modrinth.com/v2/version/{}", identifier),
-        token,
-    )
-}
-
-pub fn get_version_by_hash(hash: &FileHashes, token: Option<&str>) -> Result<ProjectVersion> {
-    get(
-        &match hash {
-            FileHashes {
-                sha512: Some(hash), ..
-            } => format!(
-                "https://api.modrinth.com/v2/version_file/{}?algorithm=sha512",
-                hash
-            ),
-            FileHashes {
-                sha1: Some(hash), ..
-            } => format!(
-                "https://api.modrinth.com/v2/version_file/{}?algorithm=sha1",
-                hash
-            ),
-            _ => {
-                return Err(Error::Input(
-                    "the provided 'FileHashes' must have at minimum one `Some` value",
-                ));
-            }
-        },
-        token,
-    )
+    pub async fn get_version_by_hash(&self, hash: &FileHashes) -> surf::Result<ProjectVersion> {
+        self.inner
+            .get(&match hash {
+                FileHashes {
+                    sha512: Some(hash), ..
+                } => format!("version_file/{}?algorithm=sha512", hash),
+                FileHashes {
+                    sha1: Some(hash), ..
+                } => format!("version_file/{}?algorithm=sha1", hash),
+                _ => panic!("expected at least one field of `hash` to be `Some`"),
+            })
+            .recv_json()
+            .await
+    }
 }
