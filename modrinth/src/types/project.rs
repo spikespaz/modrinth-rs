@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use serde_with::SerializeDisplay;
 use strum::EnumString;
 
-use super::{get, Result};
 use crate::base62::Base62;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Display, SerializeDisplay)]

@@ -1,16 +1,17 @@
-mod projects;
 mod search;
-mod versions;
 
 use std::io::Read;
-
-pub use projects::*;
-pub use search::*;
-pub use versions::*;
 
 use serde::de::DeserializeOwned;
 use serde_path_to_error::Error as SerdePathError;
 use thiserror::Error;
+
+use crate::{
+    base62::Base62,
+    types::{ProjectIdentifier, Project, ProjectVersion, FileHashes}
+};
+
+pub use search::*;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -29,9 +30,9 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-fn get<T>(endpoint: &str, token: Option<&str>) -> Result<T>
-where
-    T: DeserializeOwned,
+pub(crate) fn get<T>(endpoint: &str, token: Option<&str>) -> Result<T>
+    where
+        T: DeserializeOwned,
 {
     let mut request = ureq::get(endpoint);
 
@@ -49,4 +50,53 @@ where
         path: error,
         data: content,
     })
+}
+
+pub fn get_project(identifier: &ProjectIdentifier, token: Option<&str>) -> Result<Project> {
+    get(
+        &format!("https://api.modrinth.com/v2/project/{}", identifier),
+        token,
+    )
+}
+
+pub fn get_project_versions(
+    identifier: &ProjectIdentifier,
+    token: Option<&str>,
+) -> Result<Vec<ProjectVersion>> {
+    get(
+        &format!("https://api.modrinth.com/v2/project/{}/version", identifier),
+        token,
+    )
+}
+
+pub fn get_version(identifier: &Base62, token: Option<&str>) -> Result<ProjectVersion> {
+    get(
+        &format!("https://api.modrinth.com/v2/version/{}", identifier),
+        token,
+    )
+}
+
+pub fn get_version_by_hash(hash: &FileHashes, token: Option<&str>) -> Result<ProjectVersion> {
+    get(
+        &match hash {
+            FileHashes {
+                sha512: Some(hash), ..
+            } => format!(
+                "https://api.modrinth.com/v2/version_file/{}?algorithm=sha512",
+                hash
+            ),
+            FileHashes {
+                sha1: Some(hash), ..
+            } => format!(
+                "https://api.modrinth.com/v2/version_file/{}?algorithm=sha1",
+                hash
+            ),
+            _ => {
+                return Err(Error::Input(
+                    "the provided 'FileHashes' must have at minimum one `Some` value",
+                ));
+            }
+        },
+        token,
+    )
 }

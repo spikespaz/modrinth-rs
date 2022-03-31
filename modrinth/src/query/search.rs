@@ -6,14 +6,11 @@ use serde::{Deserialize, Serialize};
 use serde_with::SerializeDisplay;
 use strum::EnumString;
 
-use super::{
-    get,
-    projects::{ProjectType, SideSupport},
-    Result,
-};
+use super::{get, Result};
 use crate::{
     base62::Base62,
     query_string::{JsonQueryParams, SearchFilters},
+    types::{ProjectType, SideSupport},
 };
 
 pub fn get_search(params: &SearchParams, token: Option<&str>) -> Result<SearchResults> {
