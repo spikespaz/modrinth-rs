@@ -26,6 +26,7 @@ pub fn get_search(params: &SearchParams, token: Option<&str>) -> Result<SearchRe
 pub fn get_search_iter(params: SearchParams, token: Option<&str>) -> SearchResultsPaginator {
     SearchResultsPaginator::new(params, token)
 }
+pub type SearchFilters<T> = Vec<Vec<T>>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default, Serialize)]
 pub struct SearchParams {

@@ -1,11 +1,12 @@
-// mod search;
+mod query_string;
+
+pub mod search;
 
 use crate::{
     base62::Base62,
+    query::{query_string::JsonQueryParams, search::*},
     types::{FileHashes, Project, ProjectIdentifier, ProjectVersion},
 };
-
-// pub use search::*;
 
 static MODRINTH_ENDPOINT: &str = "https://api.modrinth.com/v2/";
 
