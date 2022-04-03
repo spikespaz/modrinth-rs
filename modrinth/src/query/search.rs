@@ -6,10 +6,9 @@ use serde::{Deserialize, Serialize};
 use serde_with::SerializeDisplay;
 use strum::EnumString;
 
-use super::{get, Result};
 use crate::{
     base62::Base62,
-    query_string::{JsonQueryParams, SearchFilters},
+    query::query_string::JsonQueryParams,
     types::{ProjectType, SideSupport},
 };
 
