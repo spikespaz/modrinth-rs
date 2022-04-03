@@ -16,21 +16,24 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new<S>(token: Option<S>) -> Result<Self, <surf::Client as TryFrom<surf::Config>>::Error>
-    where
-        S: AsRef<str>,
-    {
+    pub fn new(token: Option<String>) -> Self {
         let mut config = surf::Config::new();
 
+        // The unwrapping is safe because the URL is constant and guaranteed to be parsed.
         config = config.set_base_url(surf::Url::parse(MODRINTH_ENDPOINT).unwrap());
 
         if let Some(token) = token {
-            config = config.add_header("Authorization", token.as_ref()).unwrap();
+            // The unwrapping is safe because the token should be a known format,
+            // and if it is not, crashing the program is appropriate.
+            config = config.add_header("Authorization", token).unwrap();
         }
 
-        Ok(Self {
-            inner: config.try_into()?,
-        })
+        Self {
+            // The `Config` was created using defaults from Surf,
+            // and the only point of failure would have been adding the token.
+            // Unwrapping should be safe.
+            inner: config.try_into().unwrap(),
+        }
     }
 
     pub fn with_config(
