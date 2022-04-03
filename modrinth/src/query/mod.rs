@@ -2,6 +2,8 @@ mod query_string;
 
 pub mod search;
 
+use {async_stream::try_stream, futures_core::stream::Stream};
+
 use crate::{
     base62::Base62,
     query::{query_string::JsonQueryParams, search::*},
@@ -44,6 +46,49 @@ impl Client {
         Ok(Self {
             inner: config.try_into()?,
         })
+    }
+
+    pub async fn search(&self, params: &SearchParams) -> surf::Result<SearchResults> {
+        self.inner
+            .get(&format!("search?{}", &params.to_query_string()))
+            .recv_json()
+            .await
+    }
+
+    pub fn search_iter(
+        &self,
+        mut params: SearchParams,
+    ) -> impl Stream<Item = surf::Result<ProjectResult>> + '_ {
+        try_stream! {
+            let (mut projects, total) = {
+                // The first search needs to have a limit of `1`,
+                // otherwise the API seems to return an incorrect `total_hits`.
+                let limit = std::mem::replace(&mut params.limit, Some(1));
+                let search = self.search(&params).await?;
+                params.limit = limit;
+                // Because the loop won't have updated this for the first
+                // project it returns, this needs to be set.
+                params.offset = Some(params.offset.unwrap_or(0) + 1);
+
+                (search.hits, search.total_hits)
+            };
+
+            loop {
+                if projects.is_empty() {
+                    // Only check this if we are out of projects,
+                    // if this is checked outside we will be comparing too early as the
+                    // offset is updated when the next page is received.
+                    if params.offset.unwrap() >= total {
+                        break
+                    }
+
+                    projects = self.search(&params).await?.hits;
+                    params.offset = Some(params.offset.unwrap() + projects.len())
+                }
+
+                yield projects.pop_front().unwrap()
+            }
+        }
     }
 
     pub async fn get_project(&self, identifier: &ProjectIdentifier) -> surf::Result<Project> {

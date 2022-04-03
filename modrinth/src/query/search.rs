@@ -12,19 +12,6 @@ use crate::{
     types::{ProjectType, SideSupport},
 };
 
-pub fn get_search(params: &SearchParams, token: Option<&str>) -> Result<SearchResults> {
-    get(
-        &format!(
-            "https://api.modrinth.com/v2/search?{}",
-            &params.to_query_string()
-        ),
-        token,
-    )
-}
-
-pub fn get_search_iter(params: SearchParams, token: Option<&str>) -> SearchResultsPaginator {
-    SearchResultsPaginator::new(params, token)
-}
 pub type SearchFilters<T> = Vec<Vec<T>>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default, Serialize)]
@@ -36,8 +23,6 @@ pub struct SearchParams {
     pub offset: Option<usize>,
     pub limit: Option<usize>,
     pub filters: Option<SearchFilters<String>>,
-    // #[deprecated]
-    // pub version: Option<SearchFilters<String>>,
 }
 
 impl JsonQueryParams<'_> for SearchParams {}
@@ -127,7 +112,7 @@ pub struct ProjectResult {
     pub categories: Vec<String>,
     pub versions: Vec<String>,
     pub latest_version: Option<String>,
-    // Should `downloads` and `follows`be a usize but the API returns -1 sometimes
+    // The next two should be `usize` but the API seems to be returning `-1`.
     // Reference:
     // > `labrinth::models::projects::Project` and
     // > `labrinth::database::models::project_item::Project`
@@ -140,70 +125,4 @@ pub struct ProjectResult {
     pub client_side: SideSupport,
     pub server_side: SideSupport,
     pub gallery: Vec<String>,
-}
-
-#[derive(Debug)]
-pub struct SearchResultsPaginator<'a> {
-    params: SearchParams,
-    token: Option<&'a str>,
-    results: VecDeque<ProjectResult>,
-    total_hits: Option<usize>,
-    errored: bool,
-}
-
-impl<'a> SearchResultsPaginator<'a> {
-    pub fn new(params: SearchParams, token: Option<&'a str>) -> Self {
-        Self {
-            params,
-            token,
-            results: VecDeque::new(),
-            total_hits: None,
-            errored: false,
-        }
-    }
-}
-
-impl<'a> Iterator for SearchResultsPaginator<'a> {
-    type Item = Result<ProjectResult>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.errored {
-            return None;
-        }
-
-        if self.results.is_empty() {
-            let results = if self.total_hits.is_none() {
-                let mut params = self.params.clone();
-                params.limit = Some(1);
-                get_search(&params, self.token)
-            } else {
-                get_search(&self.params, self.token)
-            };
-
-            let mut results = match results {
-                Ok(results) => results,
-                Err(error) => {
-                    self.errored = true;
-                    return Some(Err(error));
-                }
-            };
-
-            if self.total_hits.is_none() {
-                self.total_hits = Some(results.total_hits);
-            }
-
-            self.results.append(&mut results.hits);
-            self.params.offset = Some(self.params.offset.unwrap_or(0) + self.results.len());
-        }
-
-        self.results.pop_front().map(Ok)
-    }
-
-    /// Requires one item to have been recieved with [`Self::next`],
-    /// otherwise the upper bound will be `None`.
-    /// This cannot be precomputed because this method cannot have mutable access to `self`
-    /// and therefore cannot process the results of an initial get request.
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (0, self.total_hits)
-    }
 }
