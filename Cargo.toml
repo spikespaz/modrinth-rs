@@ -2,6 +2,8 @@
 name = "modrinth"
 version = "0.1.0"
 edition = "2021"
+description = "Rust wraper for the Modrinth REST API. Public API subject to change before 1.0.0."
+license = "Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
