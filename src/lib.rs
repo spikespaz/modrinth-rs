@@ -1,5 +1,4 @@
 pub mod base62;
-pub mod query;
 pub mod types;
 pub mod request;
 pub mod client;

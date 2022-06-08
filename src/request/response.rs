@@ -1,4 +1,5 @@
 use std::ops::{Deref, DerefMut};
+use serde::{Serialize, Deserialize};
 
 /// This type is a pair of a response's body bytes and the deserialized value.
 /// It usually wraps a [`DataResponse`] or a [`PaginatedDataResponse`], for
@@ -70,3 +71,5 @@ pub struct PaginatedResponse<T> {
     pub limit: usize,
     pub total_hits: usize,
 }
+
+pub type ApiPageResult<T> = Result<ApiResponse<PaginatedResponse<T>>, crate::Error>;

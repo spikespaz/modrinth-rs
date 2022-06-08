@@ -1,3 +1,5 @@
+use crate::Error;
+
 /// This structure wraps an [`isahc::HttpClient`] and implements methods to
 /// easily make requests to various API endpoints.
 #[derive(Clone, Debug)]
