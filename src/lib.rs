@@ -6,7 +6,7 @@ pub mod endpoints;
 
 // pub mod prelude {}
 
-/// The main error type used throughought the crate.
+/// The main error type used throughout the crate.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// This is the most useful variant. This will be returned if the API
