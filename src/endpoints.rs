@@ -75,7 +75,7 @@ pub async fn search_projects(
     }
 }
 
-pub async fn search_projects_iter<'cu, 'f>(
+pub fn search_projects_iter<'cu, 'f>(
     client: &'cu isahc::HttpClient,
     base: &'cu url::Url,
     params: ProjectSearchParams,
