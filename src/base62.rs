@@ -3,48 +3,42 @@ use std::hash::Hash;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Base62(u64);
+pub struct Base62Uint(u64);
 
-impl Base62 {
+impl Base62Uint {
     pub fn new(number: u64) -> Self {
         Self(number)
     }
 }
 
-impl From<Base62> for u64 {
-    fn from(other: Base62) -> u64 {
+impl From<Base62Uint> for u64 {
+    fn from(other: Base62Uint) -> u64 {
         other.0
     }
 }
 
-impl<S> From<S> for Base62
+impl<S> From<S> for Base62Uint
 where
     S: AsRef<str>,
 {
     fn from(other: S) -> Self {
         Self(base62::decode(other.as_ref()).unwrap() as u64)
-        // Self(u64::from_be_bytes(
-        //     base_62::decode(other.as_ref()).unwrap()[..8]
-        //         .try_into()
-        //         .unwrap(),
-        // ))
     }
 }
 
-impl From<Base62> for String {
-    fn from(other: Base62) -> String {
+impl From<Base62Uint> for String {
+    fn from(other: Base62Uint) -> String {
         other.to_string()
     }
 }
 
-impl std::fmt::Display for Base62 {
+impl std::fmt::Display for Base62Uint {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter.write_str(&base62::encode(self.0))
-        // formatter.write_str(&base_62::encode(&self.0.to_be_bytes()))
     }
 }
 
-impl Serialize for Base62 {
+impl Serialize for Base62Uint {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -53,27 +47,24 @@ impl Serialize for Base62 {
     }
 }
 
-impl<'de> Deserialize<'de> for Base62 {
+impl<'de> Deserialize<'de> for Base62Uint {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        se_de::deserialize(deserializer).map(Base62::new)
+        se_de::deserialize(deserializer).map(Base62Uint::new)
     }
 }
 
 pub mod se_de {
-    use serde::{
-        de::{self, Visitor},
-        Deserializer, Serializer,
-    };
+    use serde::de::{self, Visitor};
+    use serde::{Deserializer, Serializer};
 
     pub fn serialize<S>(subject: &u64, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         serializer.serialize_str(&base62::encode(*subject))
-        // serializer.serialize_str(&base_62::encode(&subject.to_be_bytes()))
     }
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
@@ -86,7 +77,7 @@ pub mod se_de {
             type Value = u64;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-                formatter.write_str("a base62-string encoded u64")
+                formatter.write_str("a u64 encoded as a base-62 string")
             }
 
             fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
@@ -94,9 +85,6 @@ pub mod se_de {
                 E: de::Error,
             {
                 base62::decode(value).map_err(E::custom).map(|x| x as u64)
-                // base_62::decode(value)
-                //     .map(|bytes| u64::from_be_bytes(bytes[..8].try_into().unwrap()))
-                //     .map_err(E::custom)
             }
         }
 

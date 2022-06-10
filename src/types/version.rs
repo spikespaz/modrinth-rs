@@ -4,13 +4,13 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use strum::EnumString;
 
-use crate::base62::Base62;
+use crate::base62::Base62Uint;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ProjectVersion {
-    pub id: Base62,
-    pub project_id: Base62,
-    pub author_id: Base62,
+    pub id: Base62Uint,
+    pub project_id: Base62Uint,
+    pub author_id: Base62Uint,
     pub featured: bool,
     pub name: String,
     pub version_number: String,
@@ -78,7 +78,7 @@ impl FileHashes {
 #[serde(deny_unknown_fields)]
 pub struct VersionDependency {
     pub version_id: Option<String>,
-    pub project_id: Option<Base62>,
+    pub project_id: Option<Base62Uint>,
     pub dependency_type: DependencyType,
 }
 

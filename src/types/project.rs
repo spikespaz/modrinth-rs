@@ -6,16 +6,16 @@ use serde::{Deserialize, Serialize};
 use serde_with::SerializeDisplay;
 use strum::EnumString;
 
-use crate::base62::Base62;
+use crate::base62::Base62Uint;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Display, SerializeDisplay)]
 pub enum ProjectIdentifier {
-    Id(Base62),
+    Id(Base62Uint),
     Slug(String),
 }
 
 impl ProjectIdentifier {
-    pub fn id(other: Base62) -> Self {
+    pub fn id(other: Base62Uint) -> Self {
         Self::from(other)
     }
 
@@ -27,8 +27,8 @@ impl ProjectIdentifier {
     }
 }
 
-impl From<Base62> for ProjectIdentifier {
-    fn from(other: Base62) -> Self {
+impl From<Base62Uint> for ProjectIdentifier {
+    fn from(other: Base62Uint) -> Self {
         Self::Id(other)
     }
 }
@@ -42,16 +42,18 @@ where
     }
 }
 
-/// The API specification states that the fields `project_type`, `client_side`, and `server_side` are required,
-/// and by implication, that it must match one of the variants. However, this has been seen to not be the case.
-/// There is [`ProjectType::Unknown`] and [`SideSupport::Unknown`] to mitigate this issue.
+/// The API specification states that the fields `project_type`, `client_side`,
+/// and `server_side` are required, and by implication, that it must match one
+/// of the variants. However, this has been seen to not be the case.
+/// There is [`ProjectType::Unknown`] and [`SideSupport::Unknown`] to mitigate
+/// this issue.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Project {
-    pub id: Base62,
+    pub id: Base62Uint,
     pub slug: Option<String>,
     pub project_type: ProjectType,
-    pub team: Base62,
+    pub team: Base62Uint,
     pub title: String,
     pub description: String,
     pub body: String,
@@ -67,7 +69,7 @@ pub struct Project {
     pub downloads: usize,
     pub followers: usize,
     pub categories: Vec<String>,
-    pub versions: Vec<Base62>,
+    pub versions: Vec<Base62Uint>,
     pub icon_url: Option<String>,
     pub issues_url: Option<String>,
     pub source_url: Option<String>,
@@ -80,7 +82,7 @@ pub struct Project {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProjectSearchResult {
-    pub project_id: Base62,
+    pub project_id: Base62Uint,
     pub project_type: ProjectType,
     pub slug: Option<String>,
     pub author: String,
