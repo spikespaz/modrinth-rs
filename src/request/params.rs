@@ -1,9 +1,9 @@
-use serde::{Serialize, Deserialize};
 use derive_more::Display;
+use serde::Serialize;
 use serde_with::SerializeDisplay;
 use strum::EnumString;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, Serialize)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize)]
 pub struct ProjectSearchParams {
     pub query: Option<String>,
     /// <https://docs.modrinth.com/docs/tutorials/api_search/#facets>
@@ -14,7 +14,14 @@ pub struct ProjectSearchParams {
     pub filters: Option<SearchFilters<String>>,
 }
 
-pub type SearchFilters<T> = Vec<Vec<T>>;
+#[derive(Debug, Clone, PartialEq, SerializeDisplay)]
+pub struct SearchFilters<T>(Vec<Vec<T>>);
+
+impl<T> std::fmt::Display for SearchFilters<T> {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&serde_json::to_string(self).unwrap())
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Display, SerializeDisplay)]
 pub enum SearchFacet {
@@ -32,37 +39,37 @@ pub enum SearchFacet {
 
 impl SearchFacet {
     pub fn category<S>(value: S) -> Self
-        where
-            S: AsRef<str>,
+    where
+        S: AsRef<str>,
     {
         Self::Category(value.as_ref().to_owned())
     }
 
     pub fn version<S>(value: S) -> Self
-        where
-            S: AsRef<str>,
+    where
+        S: AsRef<str>,
     {
         Self::Version(value.as_ref().to_owned())
     }
 
     pub fn license<S>(value: S) -> Self
-        where
-            S: AsRef<str>,
+    where
+        S: AsRef<str>,
     {
         Self::License(value.as_ref().to_owned())
     }
 
     pub fn project_type<S>(value: S) -> Self
-        where
-            S: AsRef<str>,
+    where
+        S: AsRef<str>,
     {
         Self::ProjectType(value.as_ref().to_owned())
     }
 
     pub fn custom<N, S>(name: N, value: S) -> Self
-        where
-            N: AsRef<str>,
-            S: AsRef<str>,
+    where
+        N: AsRef<str>,
+        S: AsRef<str>,
     {
         Self::Custom(name.as_ref().to_owned(), value.as_ref().to_owned())
     }
