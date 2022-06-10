@@ -1,8 +1,9 @@
 use async_trait::async_trait;
 use awaur::paginator::{PaginatedStream, PaginationDelegate};
-use crate::request::params::ProjectSearchParams;
-use crate::types::{Project, ProjectSearchResult};
 
+use crate::endpoints as e;
+use crate::request::params::ProjectSearchParams;
+use crate::types::ProjectSearchResult;
 pub struct ProjectSearchDelegate<'cu> {
     client: &'cu isahc::HttpClient,
     base: &'cu url::Url,
@@ -10,12 +11,14 @@ pub struct ProjectSearchDelegate<'cu> {
     total_hits: usize,
 }
 
-impl <'cu> ProjectSearchDelegate<'cu> {
+impl<'cu> ProjectSearchDelegate<'cu> {
     pub fn new(
         client: &'cu isahc::HttpClient,
         base: &'cu url::Url,
-        params: ProjectSearchParams,
+        mut params: ProjectSearchParams,
     ) -> Self {
+        params.offset = params.offset.or(Some(0));
+
         Self {
             client,
             base,
@@ -31,11 +34,7 @@ impl PaginationDelegate for ProjectSearchDelegate<'_> {
     type Error = crate::Error;
 
     async fn next_page(&mut self) -> Result<Vec<Self::Item>, Self::Error> {
-        let result = crate::endpoints::search_projects(
-                self.client,
-                self.base,
-                &self.params
-            )
+        let result = e::search_projects(self.client, self.base, &self.params)
             .await?
             .into_value();
 
