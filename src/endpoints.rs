@@ -1,8 +1,10 @@
-use crate::request::params::ProjectSearchParams;
-use crate::types::{Project, ProjectSearchResult};
-use crate::Error;
+use crate::base62::Base62Uint;
 use crate::request::pagination::{ProjectSearchDelegate, ProjectSearchStream};
-use crate::request::response::{ApiPageResult, ApiResponse};
+use crate::request::params::ProjectSearchParams;
+use crate::request::response::{ApiPageResult, ApiResponse, ApiResult};
+use crate::types::project::{Project, ProjectIdentifier, ProjectSearchResult};
+use crate::types::version::{FileHashes, ProjectVersion};
+use crate::Error;
 
 pub static DEFAULT_API_BASE: &str = "https://api.modrinth.com/v2/";
 
@@ -63,12 +65,44 @@ macro_rules! endpoint {
     };
 }
 
+macro_rules! instantiate {
+    (
+        $(#[$struct_meta:meta])*
+        $struct_name:ident $(<$($struct_life:lifetime),+>)? {
+            $(
+                $(#[$field_meta:meta])*
+                $field_name:ident: $field_type:ty = $field_value:expr,
+            )+
+        }
+    ) => {{
+        $(#[$struct_meta])*
+        struct $struct_name $(<$($struct_life),*>)? {
+            $(
+                $(#[$field_meta])*
+                $field_name: $field_type,
+            )*
+        }
+
+        $struct_name {
+            $($field_name: $field_value,)*
+        }
+    }};
+}
+
+fn serialize_debug<T, S>(subject: &T, serializer: S) -> Result<S::Ok, S::Error>
+where
+    T: std::fmt::Debug + serde::Serialize,
+    S: serde::Serializer,
+{
+    serializer.collect_str(&format_args!("{:?}", subject))
+}
+
 pub async fn search_projects(
     client: &isahc::HttpClient,
     base: &url::Url,
     params: &ProjectSearchParams,
 ) -> ApiPageResult<ProjectSearchResult> {
-    endpoint!{
+    endpoint! {
         client GET,
         uri: base / "search",
         params: params,
@@ -83,42 +117,126 @@ pub fn search_projects_iter<'cu, 'f>(
     ProjectSearchDelegate::new(client, base, params).into()
 }
 
-//
-// pub async fn get_project(&self, identifier: &ProjectIdentifier) -> surf::Result<Project> {
-//     self.inner
-//         .get(&format!("project/{}", identifier))
-//         .recv_json()
-//         .await
+pub async fn project(
+    client: &isahc::HttpClient,
+    base: &url::Url,
+    project_id: &ProjectIdentifier,
+) -> ApiResult<Project> {
+    endpoint! {
+        client GET,
+        uri: base / "project/{}",
+        vars: [project_id],
+    }
+}
+
+pub async fn projects<I>(
+    client: &isahc::HttpClient,
+    base: &url::Url,
+    project_ids: I,
+) -> ApiResult<Project>
+where
+    I: IntoIterator<Item = Base62Uint>,
+{
+    endpoint! {
+        client GET,
+        uri: base / "projects",
+        params: &instantiate! {
+            #[derive(serde::Serialize)]
+            RequestParams {
+                #[serde(serialize_with = "serialize_debug")]
+                ids: Vec<String> = project_ids
+                    .into_iter()
+                    .map(|id| id.to_string())
+                    .collect(),
+            }
+        },
+    }
+}
+
+// pub async fn project_dependencies(
+//     client: &isahc::HttpClient,
+//     base: &url::Url,
+//     project_id: &ProjectIdentifier,
+// ) -> ApiResult<ProjectDependencies> {
+//     endpoint! {
+//         client GET,
+//         uri: base / "project/{}/dependencies",
+//         vars: [project_id],
+//     }
 // }
-//
-// pub async fn get_project_versions(
-//     &self,
-//     identifier: &ProjectIdentifier,
-// ) -> surf::Result<Vec<ProjectVersion>> {
-//     self.inner
-//         .get(&format!("version/{}", identifier))
-//         .recv_json()
-//         .await
-// }
-//
-// pub async fn get_version(&self, identifier: &Base62) -> surf::Result<ProjectVersion> {
-//     self.inner
-//         .get(&format!("version/{}", identifier))
-//         .recv_json()
-//         .await
-// }
-//
-// pub async fn get_version_by_hash(&self, hash: &FileHashes) -> surf::Result<ProjectVersion> {
-//     self.inner
-//         .get(&match hash {
-//             FileHashes {
-//                 sha512: Some(hash), ..
-//             } => format!("version_file/{}?algorithm=sha512", hash),
-//             FileHashes {
-//                 sha1: Some(hash), ..
-//             } => format!("version_file/{}?algorithm=sha1", hash),
-//             _ => panic!("expected at least one field of `hash` to be `Some`"),
-//         })
-//         .recv_json()
-//         .await
-// }
+
+pub async fn project_version_list(
+    client: &isahc::HttpClient,
+    base: &url::Url,
+    project_id: &ProjectIdentifier,
+) -> ApiResult<ProjectVersion> {
+    endpoint! {
+        client GET,
+        uri: base / "project/{}/version",
+        vars: [project_id],
+    }
+}
+
+pub async fn project_version(
+    client: &isahc::HttpClient,
+    base: &url::Url,
+    version_id: Base62Uint,
+) -> ApiResult<ProjectVersion> {
+    endpoint! {
+        client GET,
+        uri: base / "version/{}",
+        vars: [version_id],
+    }
+}
+
+pub async fn project_versions<I>(
+    client: &isahc::HttpClient,
+    base: &url::Url,
+    version_ids: I,
+) -> ApiResult<Vec<ProjectVersion>>
+where
+    I: IntoIterator<Item = Base62Uint>,
+{
+    endpoint! {
+        client GET,
+        uri: base / "versions",
+        params: &instantiate! {
+            #[derive(serde::Serialize)]
+            RequestParams {
+                #[serde(serialize_with = "serialize_debug")]
+                ids: Vec<String> = version_ids
+                    .into_iter()
+                    .map(|id| id.to_string())
+                    .collect(),
+            }
+        },
+    }
+}
+
+pub async fn project_version_by_hash(
+    client: &isahc::HttpClient,
+    base: &url::Url,
+    hash: &FileHashes,
+) -> ApiResult<ProjectVersion> {
+    let (hash, kind) = match hash {
+        FileHashes {
+            sha512: Some(hash), ..
+        } => (hash, "sha512"),
+        FileHashes {
+            sha1: Some(hash), ..
+        } => (hash, "sha1"),
+        _ => todo!(),
+    };
+
+    endpoint! {
+        client GET,
+        uri: base / "version_file/{}",
+        vars: [hash],
+        params: &instantiate! {
+            #[derive(serde::Serialize)]
+            RequestParams<'a> {
+                algorithm: &'a str = kind,
+            }
+        },
+    }
+}
