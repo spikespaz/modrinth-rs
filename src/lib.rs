@@ -1,8 +1,9 @@
-pub mod base62;
-pub mod types;
-pub mod request;
 pub mod client;
 pub mod endpoints;
+pub mod request;
+pub mod types;
+
+pub(crate) mod base62;
 
 // pub mod prelude {}
 

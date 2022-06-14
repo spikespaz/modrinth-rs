@@ -3,43 +3,15 @@ use std::hash::Hash;
 use chrono::{DateTime, Utc};
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
-use serde_with::SerializeDisplay;
+use serde_with::{serde_as, SerializeDisplay};
 use strum::EnumString;
 
-use crate::base62::Base62Uint;
+use crate::base62::Base62Encoded;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Display, SerializeDisplay)]
 pub enum ProjectIdentifier {
-    Id(Base62Uint),
+    Id(u64),
     Slug(String),
-}
-
-impl ProjectIdentifier {
-    pub fn id(other: Base62Uint) -> Self {
-        Self::from(other)
-    }
-
-    pub fn slug<S>(other: S) -> Self
-    where
-        S: AsRef<str>,
-    {
-        Self::from(other)
-    }
-}
-
-impl From<Base62Uint> for ProjectIdentifier {
-    fn from(other: Base62Uint) -> Self {
-        Self::Id(other)
-    }
-}
-
-impl<S> From<S> for ProjectIdentifier
-where
-    S: AsRef<str>,
-{
-    fn from(other: S) -> Self {
-        Self::Slug(other.as_ref().to_owned())
-    }
 }
 
 /// The API specification states that the fields `project_type`, `client_side`,
@@ -47,13 +19,16 @@ where
 /// of the variants. However, this has been seen to not be the case.
 /// There is [`ProjectType::Unknown`] and [`SideSupport::Unknown`] to mitigate
 /// this issue.
+#[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Project {
-    pub id: Base62Uint,
+    #[serde_as(as = "Base62Encoded<u64>")]
+    pub id: u64,
     pub slug: Option<String>,
     pub project_type: ProjectType,
-    pub team: Base62Uint,
+    #[serde_as(as = "Base62Encoded<u64>")]
+    pub team: u64,
     pub title: String,
     pub description: String,
     pub body: String,
@@ -69,7 +44,8 @@ pub struct Project {
     pub downloads: usize,
     pub followers: usize,
     pub categories: Vec<String>,
-    pub versions: Vec<Base62Uint>,
+    #[serde_as(as = "Vec<Base62Encoded<u64>>")]
+    pub versions: Vec<u64>,
     pub icon_url: Option<String>,
     pub issues_url: Option<String>,
     pub source_url: Option<String>,
@@ -79,10 +55,12 @@ pub struct Project {
     pub gallery: Vec<GalleryItem>,
 }
 
+#[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProjectSearchResult {
-    pub project_id: Base62Uint,
+    #[serde_as(as = "Base62Encoded<u64>")]
+    pub project_id: u64,
     pub project_type: ProjectType,
     pub slug: Option<String>,
     pub author: String,

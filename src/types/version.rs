@@ -2,15 +2,20 @@ use std::hash::Hash;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 use strum::EnumString;
 
-use crate::base62::Base62Uint;
+use crate::base62::Base62Encoded;
 
+#[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ProjectVersion {
-    pub id: Base62Uint,
-    pub project_id: Base62Uint,
-    pub author_id: Base62Uint,
+    #[serde_as(as = "Base62Encoded<u64>")]
+    pub id: u64,
+    #[serde_as(as = "Base62Encoded<u64>")]
+    pub project_id: u64,
+    #[serde_as(as = "Base62Encoded<u64>")]
+    pub author_id: u64,
     pub featured: bool,
     pub name: String,
     pub version_number: String,
@@ -74,11 +79,13 @@ impl FileHashes {
     }
 }
 
+#[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct VersionDependency {
     pub version_id: Option<String>,
-    pub project_id: Option<Base62Uint>,
+    #[serde_as(as = "Option<Base62Encoded<u64>>")]
+    pub project_id: Option<u64>,
     pub dependency_type: DependencyType,
 }
 

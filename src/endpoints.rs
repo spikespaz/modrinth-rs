@@ -1,4 +1,3 @@
-use crate::base62::Base62Uint;
 use crate::request::pagination::{ProjectSearchDelegate, ProjectSearchStream};
 use crate::request::params::ProjectSearchParams;
 use crate::request::response::{ApiPageResult, ApiResponse, ApiResult};
@@ -12,7 +11,7 @@ macro_rules! endpoint {
     (
         $client:ident $method:ident,
         uri: $base:ident / $path:literal,
-        $(vars: [$($var:ident),+],)?
+        $(vars: [$($var:expr),+],)?
         $(params: $params:expr,)?
         $(body: $body:expr,)?
     ) => {{
@@ -48,7 +47,7 @@ macro_rules! endpoint {
     (@uri, $base:ident, $path:literal) => {
         $base.join($path).unwrap()
     };
-    (@uri, $base:ident, $path:literal, [$($var:ident),+]) => {
+    (@uri, $base:ident, $path:literal, [$($var:expr),+]) => {
         $base.join(&format!($path, $($var),*)).unwrap()
     };
     (@build, $builder:ident) => {
@@ -135,7 +134,7 @@ pub async fn projects<I>(
     project_ids: I,
 ) -> ApiResult<Project>
 where
-    I: IntoIterator<Item = Base62Uint>,
+    I: IntoIterator<Item = u64>,
 {
     endpoint! {
         client GET,
@@ -146,7 +145,7 @@ where
                 #[serde(serialize_with = "serialize_debug")]
                 ids: Vec<String> = project_ids
                     .into_iter()
-                    .map(|id| id.to_string())
+                    .map(base62::encode)
                     .collect(),
             }
         },
@@ -180,12 +179,12 @@ pub async fn project_version_list(
 pub async fn project_version(
     client: &isahc::HttpClient,
     base: &url::Url,
-    version_id: Base62Uint,
+    version_id: u64,
 ) -> ApiResult<ProjectVersion> {
     endpoint! {
         client GET,
         uri: base / "version/{}",
-        vars: [version_id],
+        vars: [base62::encode(version_id)],
     }
 }
 
@@ -195,7 +194,7 @@ pub async fn project_versions<I>(
     version_ids: I,
 ) -> ApiResult<Vec<ProjectVersion>>
 where
-    I: IntoIterator<Item = Base62Uint>,
+    I: IntoIterator<Item = u64>,
 {
     endpoint! {
         client GET,
@@ -206,7 +205,7 @@ where
                 #[serde(serialize_with = "serialize_debug")]
                 ids: Vec<String> = version_ids
                     .into_iter()
-                    .map(|id| id.to_string())
+                    .map(base62::encode)
                     .collect(),
             }
         },

@@ -1,93 +1,54 @@
-use std::hash::Hash;
+use std::str::FromStr;
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize, Serializer};
+use serde_with::{DeserializeAs, DeserializeFromStr, SerializeAs, SerializeDisplay};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Base62Uint(u64);
+#[derive(PartialEq, SerializeDisplay, DeserializeFromStr)]
+pub struct Base62Encoded<T>(pub T);
 
-impl Base62Uint {
-    pub fn new(number: u64) -> Self {
-        Self(number)
-    }
-}
-
-impl From<Base62Uint> for u64 {
-    fn from(other: Base62Uint) -> u64 {
-        other.0
-    }
-}
-
-impl<S> From<S> for Base62Uint
+impl<T> std::fmt::Display for Base62Encoded<T>
 where
-    S: AsRef<str>,
+    T: Clone + Into<u128>,
 {
-    fn from(other: S) -> Self {
-        Self(base62::decode(other.as_ref()).unwrap() as u64)
-    }
-}
-
-impl From<Base62Uint> for String {
-    fn from(other: Base62Uint) -> String {
-        other.to_string()
-    }
-}
-
-impl std::fmt::Display for Base62Uint {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str(&base62::encode(self.0))
+        formatter.write_str(&base62::encode(self.0.clone()))
     }
 }
 
-impl Serialize for Base62Uint {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
+impl<T> FromStr for Base62Encoded<T>
+where
+    u128: TryInto<T>,
+{
+    type Err = base62::DecodeError;
 
-impl<'de> Deserialize<'de> for Base62Uint {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        se_de::deserialize(deserializer).map(Base62Uint::new)
-    }
-}
-
-pub mod se_de {
-    use serde::de::{self, Visitor};
-    use serde::{Deserializer, Serializer};
-
-    pub fn serialize<S>(subject: &u64, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&base62::encode(*subject))
-    }
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct Base62Visitor;
-
-        impl<'de> Visitor<'de> for Base62Visitor {
-            type Value = u64;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-                formatter.write_str("a u64 encoded as a base-62 string")
-            }
-
-            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                base62::decode(value).map_err(E::custom).map(|x| x as u64)
-            }
+    fn from_str(other: &str) -> Result<Self, Self::Err> {
+        match base62::decode(other)?.try_into() {
+            Ok(n) => Ok(Base62Encoded(n)),
+            Err(_) => Err(Self::Err::ArithmeticOverflow),
         }
+    }
+}
 
-        deserializer.deserialize_str(Base62Visitor)
+impl<T> SerializeAs<T> for Base62Encoded<T>
+where
+    T: Clone + Into<u128>,
+{
+    fn serialize_as<S>(source: &T, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        Base62Encoded(source.clone()).serialize(serializer)
+    }
+}
+
+impl<'de, T> DeserializeAs<'de, T> for Base62Encoded<T>
+where
+    u128: TryInto<T>,
+{
+    fn deserialize_as<D>(deserializer: D) -> Result<T, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Base62Encoded::deserialize(deserializer).map(|n| n.0)
     }
 }
