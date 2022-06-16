@@ -1,13 +1,13 @@
 use serde::Serialize;
 use serde_with::serde_as;
 
-use crate::base62::Base62Encoded;
-use crate::json_string::JsonString;
 use crate::request::pagination::{ProjectSearchDelegate, ProjectSearchStream};
 use crate::request::params::ProjectSearchParams;
 use crate::request::response::{ApiPageResult, ApiResponse, ApiResult};
+use crate::serde_with::{Base62, JsonString};
 use crate::types::project::{Project, ProjectIdentifier, ProjectSearchResult};
 use crate::types::version::{FileHashes, ProjectVersion};
+use crate::utils::new_struct;
 use crate::Error;
 
 pub static DEFAULT_API_BASE: &str = "https://api.modrinth.com/v2/";
@@ -69,30 +69,6 @@ macro_rules! endpoint {
     };
 }
 
-macro_rules! instantiate {
-    (
-        $(#[$struct_meta:meta])*
-        $struct_name:ident $(<$($struct_life:lifetime),+>)? {
-            $(
-                $(#[$field_meta:meta])*
-                $field_name:ident: $field_type:ty = $field_value:expr,
-            )+
-        }
-    ) => {{
-        $(#[$struct_meta])*
-        struct $struct_name $(<$($struct_life),*>)? {
-            $(
-                $(#[$field_meta])*
-                $field_name: $field_type,
-            )*
-        }
-
-        $struct_name {
-            $($field_name: $field_value,)*
-        }
-    }};
-}
-
 pub async fn search_projects(
     client: &isahc::HttpClient,
     base: &url::Url,
@@ -136,11 +112,11 @@ where
     endpoint! {
         client GET,
         uri: base / "projects",
-        params: &instantiate! {
+        params: &new_struct! {
             #[serde_as]
             #[derive(Serialize)]
             RequestParams {
-                #[serde_as(as = "JsonString<Vec<Base62Encoded<u64>>>")]
+                #[serde_as(as = "JsonString<Vec<Base62<u64>>>")]
                 ids: Vec<u64> = project_ids.into_iter().collect(),
             }
         },
@@ -194,11 +170,11 @@ where
     endpoint! {
         client GET,
         uri: base / "versions",
-        params: &instantiate! {
+        params: &new_struct! {
             #[serde_as]
             #[derive(Serialize)]
             RequestParams {
-                #[serde_as(as = "JsonString<Vec<Base62Encoded<u64>>>")]
+                #[serde_as(as = "JsonString<Vec<Base62<u64>>>")]
                 ids: Vec<u64> = version_ids.into_iter().collect(),
             }
         },
@@ -224,8 +200,8 @@ pub async fn project_version_by_hash(
         client GET,
         uri: base / "version_file/{}",
         vars: [hash],
-        params: &instantiate! {
-            #[derive(serde::Serialize)]
+        params: &new_struct! {
+            #[derive(Serialize)]
             RequestParams<'a> {
                 algorithm: &'a str = kind,
             }

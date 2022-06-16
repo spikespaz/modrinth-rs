@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, SerializeDisplay};
 use strum::EnumString;
 
-use crate::base62::Base62Encoded;
+use crate::serde_with::Base62;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Display, SerializeDisplay)]
 pub enum ProjectIdentifier {
@@ -23,11 +23,11 @@ pub enum ProjectIdentifier {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Project {
-    #[serde_as(as = "Base62Encoded<u64>")]
+    #[serde_as(as = "Base62<u64>")]
     pub id: u64,
     pub slug: Option<String>,
     pub project_type: ProjectType,
-    #[serde_as(as = "Base62Encoded<u64>")]
+    #[serde_as(as = "Base62<u64>")]
     pub team: u64,
     pub title: String,
     pub description: String,
@@ -44,7 +44,7 @@ pub struct Project {
     pub downloads: usize,
     pub followers: usize,
     pub categories: Vec<String>,
-    #[serde_as(as = "Vec<Base62Encoded<u64>>")]
+    #[serde_as(as = "Vec<Base62<u64>>")]
     pub versions: Vec<u64>,
     pub icon_url: Option<String>,
     pub issues_url: Option<String>,
@@ -59,7 +59,7 @@ pub struct Project {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProjectSearchResult {
-    #[serde_as(as = "Base62Encoded<u64>")]
+    #[serde_as(as = "Base62<u64>")]
     pub project_id: u64,
     pub project_type: ProjectType,
     pub slug: Option<String>,
