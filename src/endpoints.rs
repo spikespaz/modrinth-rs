@@ -1,3 +1,8 @@
+use serde::Serialize;
+use serde_with::serde_as;
+
+use crate::base62::Base62Encoded;
+use crate::json_string::JsonString;
 use crate::request::pagination::{ProjectSearchDelegate, ProjectSearchStream};
 use crate::request::params::ProjectSearchParams;
 use crate::request::response::{ApiPageResult, ApiResponse, ApiResult};
@@ -88,14 +93,6 @@ macro_rules! instantiate {
     }};
 }
 
-fn serialize_debug<T, S>(subject: &T, serializer: S) -> Result<S::Ok, S::Error>
-where
-    T: std::fmt::Debug + serde::Serialize,
-    S: serde::Serializer,
-{
-    serializer.collect_str(&format_args!("{:?}", subject))
-}
-
 pub async fn search_projects(
     client: &isahc::HttpClient,
     base: &url::Url,
@@ -140,13 +137,11 @@ where
         client GET,
         uri: base / "projects",
         params: &instantiate! {
-            #[derive(serde::Serialize)]
+            #[serde_as]
+            #[derive(Serialize)]
             RequestParams {
-                #[serde(serialize_with = "serialize_debug")]
-                ids: Vec<String> = project_ids
-                    .into_iter()
-                    .map(base62::encode)
-                    .collect(),
+                #[serde_as(as = "JsonString<Vec<Base62Encoded<u64>>>")]
+                ids: Vec<u64> = project_ids.into_iter().collect(),
             }
         },
     }
@@ -200,13 +195,11 @@ where
         client GET,
         uri: base / "versions",
         params: &instantiate! {
-            #[derive(serde::Serialize)]
+            #[serde_as]
+            #[derive(Serialize)]
             RequestParams {
-                #[serde(serialize_with = "serialize_debug")]
-                ids: Vec<String> = version_ids
-                    .into_iter()
-                    .map(base62::encode)
-                    .collect(),
+                #[serde_as(as = "JsonString<Vec<Base62Encoded<u64>>>")]
+                ids: Vec<u64> = version_ids.into_iter().collect(),
             }
         },
     }

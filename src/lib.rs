@@ -4,6 +4,7 @@ pub mod request;
 pub mod types;
 
 pub(crate) mod base62;
+pub(crate) mod json_string;
 
 // pub mod prelude {}
 
