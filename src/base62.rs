@@ -1,10 +1,10 @@
 use std::str::FromStr;
 
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_with::{DeserializeAs, DeserializeFromStr, SerializeAs, SerializeDisplay};
 
-#[derive(PartialEq, SerializeDisplay, DeserializeFromStr)]
-pub struct Base62Encoded<T>(pub T);
+#[derive(Clone, PartialEq, SerializeDisplay, DeserializeFromStr)]
+pub struct Base62Encoded<T>(T);
 
 impl<T> std::fmt::Display for Base62Encoded<T>
 where
@@ -47,8 +47,8 @@ where
 {
     fn deserialize_as<D>(deserializer: D) -> Result<T, D::Error>
     where
-        D: serde::Deserializer<'de>,
+        D: Deserializer<'de>,
     {
-        Base62Encoded::deserialize(deserializer).map(|n| n.0)
+        Base62Encoded::deserialize(deserializer).map(|this| this.0)
     }
 }
