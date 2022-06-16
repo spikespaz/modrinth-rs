@@ -9,14 +9,14 @@ use serde_with::{DeserializeAs, SerializeAs};
 #[derive(Clone, Debug, PartialEq)]
 pub struct JsonString<T>(T);
 
-// impl<T> Serialize for JsonString<T> {
-//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-//     where
-//         S: Serializer,
-//     {
-//         serializer.collect_str(&serde_json::to_string(self).
-// map_err(SerializeError::custom)?)     }
-// }
+impl<T> Serialize for JsonString<T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&serde_json::to_string(self).map_err(SerializeError::custom)?)
+    }
+}
 
 impl<'de, T> Deserialize<'de> for JsonString<T>
 where
@@ -60,10 +60,7 @@ where
     where
         S: Serializer,
     {
-        serializer.serialize_str(
-            &serde_json::to_string(&SerializeAsWrap::<T, U>::new(source))
-                .map_err(SerializeError::custom)?,
-        )
+        SerializeAsWrap::<T, U>::new(source).serialize(serializer)
     }
 }
 
