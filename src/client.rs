@@ -13,8 +13,8 @@ impl Client {
     /// API base URL (use [`e::DEFAULT_API_BASE`] if not using a proxy)
     /// and an optional token for authentication (required without a proxy).
     pub fn new<U>(base: U, token: Option<String>) -> Result<Self, Error>
-        where
-            U: AsRef<str>,
+    where
+        U: AsRef<str>,
     {
         let mut builder = isahc::HttpClient::builder();
 
@@ -22,7 +22,7 @@ impl Client {
         builder = builder.default_header("accept", "application/json");
 
         if let Some(token) = token {
-            builder = builder.default_header("x-api-key", token);
+            builder = builder.default_header("authorization", token);
         }
 
         let base = url::Url::parse(base.as_ref())?;
