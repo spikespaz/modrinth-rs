@@ -1,9 +1,9 @@
 use std::hash::Hash;
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use strum::EnumString;
+use time::OffsetDateTime;
 
 use crate::serde_with::Base62;
 
@@ -22,7 +22,8 @@ pub struct ProjectVersion {
     pub changelog: Option<String>,
     #[deprecated]
     pub changelog_url: Option<String>,
-    pub date_published: DateTime<Utc>,
+    #[serde(with = "time::serde::rfc3339")]
+    pub date_published: OffsetDateTime,
     pub downloads: usize,
     pub version_type: VersionType,
     pub files: Vec<VersionFile>,

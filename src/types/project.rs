@@ -1,9 +1,9 @@
 use std::hash::Hash;
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use strum::EnumString;
+use time::OffsetDateTime;
 
 use crate::serde_with::Base62;
 
@@ -27,8 +27,10 @@ pub struct Project {
     pub body: String,
     #[deprecated]
     pub body_url: Option<String>,
-    pub published: DateTime<Utc>,
-    pub updated: DateTime<Utc>,
+    #[serde(with = "time::serde::rfc3339")]
+    pub published: OffsetDateTime,
+    #[serde(with = "time::serde::rfc3339")]
+    pub updated: OffsetDateTime,
     pub status: ProjectStatus,
     pub moderator_message: Option<ModeratorMessage>,
     pub license: ProjectLicense,
@@ -112,5 +114,6 @@ pub struct GalleryItem {
     pub featured: bool,
     pub title: Option<String>,
     pub description: Option<String>,
-    pub created: DateTime<Utc>,
+    #[serde(with = "time::serde::rfc3339")]
+    pub created: OffsetDateTime,
 }

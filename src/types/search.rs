@@ -1,6 +1,6 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
+use time::OffsetDateTime;
 
 use super::project::{ProjectType, SideSupport};
 use crate::serde_with::Base62;
@@ -26,8 +26,10 @@ pub struct ProjectSearchResult {
     pub downloads: isize,
     pub follows: isize,
     pub icon_url: String,
-    pub date_created: DateTime<Utc>,
-    pub date_modified: DateTime<Utc>,
+    #[serde(with = "time::serde::rfc3339")]
+    pub date_created: OffsetDateTime,
+    #[serde(with = "time::serde::rfc3339")]
+    pub date_modified: OffsetDateTime,
     pub license: String,
     pub client_side: SideSupport,
     pub server_side: SideSupport,
