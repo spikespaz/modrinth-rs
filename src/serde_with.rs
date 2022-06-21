@@ -15,7 +15,7 @@ mod json {
 
     use super::imports::*;
 
-    pub struct JsonString<T>(T);
+    pub struct JsonString<T>(pub T);
 
     impl<T> Serialize for JsonString<T> {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -94,7 +94,7 @@ mod base62 {
     use super::imports::*;
 
     #[derive(SerializeDisplay, DeserializeFromStr)]
-    pub struct Base62<T>(T);
+    pub struct Base62<T>(pub T);
 
     impl<T> FmtDisplay for Base62<T>
     where

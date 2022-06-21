@@ -1,18 +1,11 @@
 use std::hash::Hash;
 
 use chrono::{DateTime, Utc};
-use derive_more::Display;
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, SerializeDisplay};
+use serde_with::serde_as;
 use strum::EnumString;
 
 use crate::serde_with::Base62;
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, SerializeDisplay)]
-pub enum ProjectIdentifier {
-    Id(u64),
-    Slug(String),
-}
 
 /// The API specification states that the fields `project_type`, `client_side`,
 /// and `server_side` are required, and by implication, that it must match one

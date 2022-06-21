@@ -2,10 +2,10 @@ use serde::Serialize;
 use serde_with::serde_as;
 
 use crate::request::pagination::{ProjectSearchDelegate, ProjectSearchStream};
-use crate::request::params::ProjectSearchParams;
+use crate::request::params::{ProjectIdentifier, ProjectSearchParams};
 use crate::request::response::{ApiPageResult, ApiResponse, ApiResult};
 use crate::serde_with::{Base62, JsonString};
-use crate::types::project::{Project, ProjectIdentifier, ProjectSearchResult};
+use crate::types::project::{Project, ProjectSearchResult};
 use crate::types::version::{FileHashes, ProjectVersion};
 use crate::utils::new_struct;
 use crate::Error;
