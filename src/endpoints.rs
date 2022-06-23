@@ -25,17 +25,34 @@ macro_rules! endpoint {
 
         #[allow(unused_mut)]
         let mut uri = endpoint!(@uri, $base, $path $(, [$($var),*])?);
+        // Use of unwrap:
+        // As with the request body and the URI, the value being serialized as
+        // query parameters shouldn't realistically fail because it is expected
+        // to be strongly-typed, with fields also of types that implement
+        // `Serialize` and are strongly-typed themselves.
         $(uri.set_query(Some(&serde_qs::to_string($params).unwrap()));)?
 
         let builder = isahc::Request::builder()
             .method(endpoint!(@str $method))
             .uri(uri.as_str());
-        let request = endpoint!(@build, builder $(, $body)?)?;
+        // Use of unwrap:
+        // The request is built by this macro, and there should be enough
+        // structured information here that building request (when the body is
+        // added in another branch of code) is guaranteed to succeed.
+        // Mistakes here *should* have been caught by a compile-time error.
+        let request = endpoint!(@build, builder $(, $body)?).unwrap();
 
+        // Sending the request can easily fail, so this would get bubbled to
+        // [`crate::Error::Request`].
         let response = $client.send_async(request).await?;
         let status = response.status();
         let mut bytes = Vec::new();
 
+        // Use of unwrap:
+        // I expect reading the bytes from a response body to be infallible.
+        // Responses must always return some data, it can't just be headers,
+        // so unwrapping the result of the `read_to_end` here should be
+        // perfectly safe.
         response.into_body().read_to_end(&mut bytes).await.unwrap();
 
         if status != 200 {
@@ -51,15 +68,30 @@ macro_rules! endpoint {
         }
     }};
     (@uri, $base:ident, $path:literal) => {
+        // Use of unwrap:
+        // The `$base` is most likely hard-coded, or at the very least expected
+        // to be validated ahead-of-time. The `$path` is definitely hard-coded,
+        // and the user of the crate is responsible for ensuring its
+        // correctness.
         $base.join($path).unwrap()
     };
     (@uri, $base:ident, $path:literal, [$($var:expr),+]) => {
+        // Use of unwrap:
+        // Formatting `$path` with `$var` items realistically shouldn't fail as
+        // long as the type-system is utilized. Types used as `$var` should have
+        // a consistent `Display` implimentation, and no matter the value of the
+        // type, should serialize into something that can both be sent over the
+        // internet and understood by the recipient.
         $base.join(&format!($path, $($var),*)).unwrap()
     };
     (@build, $builder:ident) => {
         $builder.body(())
     };
     (@build, $builder:ident, $body:expr) => {
+        // Use of unwrap:
+        // Serializing the request body as JSON should not fail as long as it is
+        // strongly-typed, with fields implementing `Serialize`, which is
+        // expected here.
         $builder.body(serde_json::to_string($body).unwrap())
     };
     (@str GET) => {
