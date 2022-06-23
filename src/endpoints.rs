@@ -67,7 +67,7 @@ macro_rules! endpoint {
         // the unexpected status, the fully formed URI, and the body bytes in
         // case the server responded with more details.
         if status != 200 {
-            return Err(Error::StatusNotOk { uri, status, bytes: Box::new(bytes) });
+            return Err(Error::StatusNotOk { uri, status, bytes });
         }
 
         let deser = &mut serde_json::Deserializer::from_slice(bytes.as_slice());
@@ -78,7 +78,7 @@ macro_rules! endpoint {
         // to `Error::Deserialize`.
         match result {
             Ok(value) => Ok(ApiResponse { bytes, value }),
-            Err(error) => Err(Error::Deserialize { uri, error, bytes: Box::new(bytes) }),
+            Err(error) => Err(Error::Deserialize { uri, error, bytes }),
         }
     }};
     (@uri, $base:ident, $path:literal) => {

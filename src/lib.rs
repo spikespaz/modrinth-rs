@@ -25,7 +25,7 @@ pub enum Error {
         #[source]
         error: serde_path_to_error::Error<serde_json::Error>,
         /// The bytes the body content bytes of the response.
-        bytes: Box<Vec<u8>>,
+        bytes: Vec<u8>,
     },
     /// Sometimes the backend can throw an error, either because something was
     /// configured wrongly or an internal error such as connection loss could
@@ -39,10 +39,10 @@ pub enum Error {
     StatusNotOk {
         /// The URI that the initial request was sent to.
         uri: url::Url,
-        /// The response status code that was returned, not `200: OK`.
+        /// The response status code that was returned, not 200 OK.
         status: isahc::http::StatusCode,
         /// The bytes the body content bytes of the response.
-        bytes: Box<Vec<u8>>,
+        bytes: Vec<u8>,
     },
     /*
     /// This variant will wrap an [`isahc::http::Error`] when configuring the
