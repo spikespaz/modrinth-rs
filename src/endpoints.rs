@@ -3,7 +3,7 @@ use serde_with::serde_as;
 
 use crate::request::pagination::{ProjectSearchDelegate, ProjectSearchStream};
 use crate::request::params::{ProjectIdentifier, ProjectSearchParams};
-use crate::request::response::{ApiPageResult, ApiResponse, ApiResult};
+use crate::request::response::{ApiResponse, PaginatedResponse};
 use crate::serde_with::{Base62, JsonString};
 use crate::types::project::Project;
 use crate::types::search::ProjectSearchResult;
@@ -42,6 +42,26 @@ pub struct ResponseError {
     /// The body content bytes of the response.
     pub bytes: Vec<u8>,
 }
+
+/// The main error type used for methods associated with REST endpoints.
+#[non_exhaustive]
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("{0}")]
+    Deserialize(#[from] DeserializeError),
+    /// Sometimes the backend can throw an error, either because something was
+    /// configured wrongly or because of an internal error such as connection
+    /// loss.
+    #[error("failed to construct a request or recieve a response\n{0}")]
+    Request(#[from] isahc::Error),
+    #[error("{0}")]
+    Response(#[from] ResponseError),
+}
+
+/// See the documentation for [`ApiResponse`].
+pub type ApiResult<T> = Result<ApiResponse<T>, Error>;
+/// See the documentation for [`ApiResponse`].
+pub type ApiPageResult<T> = Result<ApiResponse<PaginatedResponse<T>>, Error>;
 
 /// This macro makes use of several calls to [`Result::unwrap`] or
 /// [`Option::unwrap`]. The values that are unwrapped are expected to be of

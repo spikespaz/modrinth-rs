@@ -4,6 +4,7 @@ use awaur::paginator::{PaginatedStream, PaginationDelegate};
 use crate::endpoints as e;
 use crate::request::params::ProjectSearchParams;
 use crate::types::ProjectSearchResult;
+
 pub struct ProjectSearchDelegate<'cu> {
     client: &'cu isahc::HttpClient,
     base: &'cu url::Url,
@@ -31,7 +32,7 @@ impl<'cu> ProjectSearchDelegate<'cu> {
 #[async_trait]
 impl PaginationDelegate for ProjectSearchDelegate<'_> {
     type Item = ProjectSearchResult;
-    type Error = crate::Error;
+    type Error = e::Error;
 
     async fn next_page(&mut self) -> Result<Vec<Self::Item>, Self::Error> {
         let result = e::search_projects(self.client, self.base, &self.params)

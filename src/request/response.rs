@@ -71,8 +71,3 @@ pub struct PaginatedResponse<T> {
     pub limit: usize,
     pub total_hits: usize,
 }
-
-/// See the documentation for [`ApiResponse`].
-pub type ApiResult<T> = Result<ApiResponse<T>, crate::Error>;
-/// See the documentation for [`ApiResponse`].
-pub type ApiPageResult<T> = Result<ApiResponse<PaginatedResponse<T>>, crate::Error>;
