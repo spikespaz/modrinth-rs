@@ -1,11 +1,10 @@
 use std::hash::Hash;
 
+use awaur::serde_with::Base62;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use strum::EnumString;
 use time::OffsetDateTime;
-
-use crate::serde_with::Base62;
 
 /// The API specification states that the fields `project_type`, `client_side`,
 /// and `server_side` are required, and by implication, that it must match one
@@ -16,11 +15,11 @@ use crate::serde_with::Base62;
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Project {
-    #[serde_as(as = "Base62<u64>")]
+    #[serde_as(as = "Base62")]
     pub id: u64,
     pub slug: Option<String>,
     pub project_type: ProjectType,
-    #[serde_as(as = "Base62<u64>")]
+    #[serde_as(as = "Base62")]
     pub team: u64,
     pub title: String,
     pub description: String,
@@ -39,7 +38,7 @@ pub struct Project {
     pub downloads: usize,
     pub followers: usize,
     pub categories: Vec<String>,
-    #[serde_as(as = "Vec<Base62<u64>>")]
+    #[serde_as(as = "Vec<Base62>")]
     pub versions: Vec<u64>,
     pub icon_url: Option<String>,
     pub issues_url: Option<String>,

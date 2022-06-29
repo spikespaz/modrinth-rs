@@ -1,20 +1,19 @@
 use std::hash::Hash;
 
+use awaur::serde_with::Base62;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use strum::EnumString;
 use time::OffsetDateTime;
 
-use crate::serde_with::Base62;
-
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ProjectVersion {
-    #[serde_as(as = "Base62<u64>")]
+    #[serde_as(as = "Base62")]
     pub id: u64,
-    #[serde_as(as = "Base62<u64>")]
+    #[serde_as(as = "Base62")]
     pub project_id: u64,
-    #[serde_as(as = "Base62<u64>")]
+    #[serde_as(as = "Base62")]
     pub author_id: u64,
     pub featured: bool,
     pub name: String,
@@ -85,7 +84,7 @@ impl FileHashes {
 #[serde(deny_unknown_fields)]
 pub struct VersionDependency {
     pub version_id: Option<String>,
-    #[serde_as(as = "Option<Base62<u64>>")]
+    #[serde_as(as = "Option<Base62>")]
     pub project_id: Option<u64>,
     pub dependency_type: DependencyType,
 }

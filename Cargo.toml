@@ -24,7 +24,18 @@ serde_qs = "0.9"
 thiserror = "1"
 futures-lite = "1"
 async-trait = "0.1"
-awaur = "0.1"
+
+[dependencies.awaur]
+version = "0.1"
+features = [
+    "paginator",
+    "serde-as-wrapper",
+    "serde-with-base62",
+    "serde-with-json-string"
+] 
+
+# [patch.crates-io]
+# awaur = { path = "/home/jacob/Documents/github.com/spikespaz/awaur" }
 
 [dev-dependencies]
 smol = "1"

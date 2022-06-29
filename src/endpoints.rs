@@ -1,14 +1,14 @@
+use awaur::macros::new_struct;
+use awaur::serde_with::{Base62, JsonString};
 use serde::Serialize;
 use serde_with::serde_as;
 
 use crate::request::pagination::{ProjectSearchDelegate, ProjectSearchStream};
 use crate::request::params::{ProjectIdentifier, ProjectSearchParams};
 use crate::request::response::{ApiResponse, PaginatedResponse};
-use crate::serde_with::{Base62, JsonString};
 use crate::types::project::Project;
 use crate::types::search::ProjectSearchResult;
 use crate::types::version::{FileHashes, ProjectVersion};
-use crate::utils::new_struct;
 
 pub static DEFAULT_API_BASE: &str = "https://api.modrinth.com/v2/";
 
@@ -213,7 +213,7 @@ where
             #[serde_as]
             #[derive(Serialize)]
             RequestParams {
-                #[serde_as(as = "JsonString<Vec<Base62<u64>>>")]
+                #[serde_as(as = "JsonString<Vec<Base62>>")]
                 ids: Vec<u64> = project_ids.into_iter().collect(),
             }
         },
@@ -271,7 +271,7 @@ where
             #[serde_as]
             #[derive(Serialize)]
             RequestParams {
-                #[serde_as(as = "JsonString<Vec<Base62<u64>>>")]
+                #[serde_as(as = "JsonString<Vec<Base62>>")]
                 ids: Vec<u64> = version_ids.into_iter().collect(),
             }
         },

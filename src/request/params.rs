@@ -3,11 +3,9 @@ use serde::Serialize;
 use serde_with::SerializeDisplay;
 use strum::EnumString;
 
-use crate::serde_with::Base62;
-
 #[derive(Debug, Display, Clone, PartialEq, Eq, Hash, SerializeDisplay)]
 pub enum ProjectIdentifier {
-    #[display(fmt = "{}", "Base62(*_0)")]
+    #[display(fmt = "{}", "base62::encode(*_0)")]
     Id(u64),
     #[display(fmt = "{}", _0)]
     Slug(String),

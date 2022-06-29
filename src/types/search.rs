@@ -1,15 +1,15 @@
+use awaur::serde_with::Base62;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use time::OffsetDateTime;
 
 use super::project::{ProjectType, SideSupport};
-use crate::serde_with::Base62;
 
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProjectSearchResult {
-    #[serde_as(as = "Base62<u64>")]
+    #[serde_as(as = "Base62")]
     pub project_id: u64,
     pub project_type: ProjectType,
     pub slug: Option<String>,
