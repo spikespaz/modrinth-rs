@@ -26,21 +26,27 @@ fn search_projects_iter() {
         pin!(search);
 
         while let Some(result) = search.next().await {
-            println!("{:?}", result);
+            match result {
+                Ok(response) => println!("{:?}", response),
+                Err(error) => {
+                    // let v: serde_json::Value =
+                    //     serde_json::from_slice(error.bytes().unwrap()).unwrap();
+                    // eprintln!("{}", serde_json::to_string_pretty(&v).unwrap());
+                    // eprintln!("{}", error);
+                    panic!("{}", error)
+                }
+            }
         }
-    })
+    });
 }
 
-// #[test]
-// fn search_projects() {
-//     smol::block_on(async {
-//         // use smol::pin;
-//         // use smol::stream::StreamExt;
+#[test]
+fn search_projects() {
+    smol::block_on(async {
+        let params = ProjectSearchParams::default();
+        let search = e::search_projects(&CLIENT, &API_BASE, &params).await;
 
-//         let params = ProjectSearchParams::default();
-
-//         let search = e::search_projects(&CLIENT, &API_BASE, &params).await;
-
-//         dbg!(search);
-//     })
-// }
+        dbg!(&search);
+        assert!(search.is_ok());
+    })
+}
