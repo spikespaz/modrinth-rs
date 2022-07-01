@@ -26,9 +26,10 @@ futures-lite = "1"
 async-trait = "0.1"
 
 [dependencies.awaur]
-version = "0.1"
+version = "0.2"
 features = [
     "paginator",
+    "endpoints",
     "serde-as-wrapper",
     "serde-with-base62",
     "serde-with-json-string"

@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use awaur::paginator::{PaginatedStream, PaginationDelegate};
+use serde::{Deserialize, Serialize};
 
 use crate::endpoints as e;
 use crate::request::params::ProjectSearchParams;
@@ -59,3 +60,12 @@ impl PaginationDelegate for ProjectSearchDelegate<'_> {
 
 /// See the documentation for [`PaginatedStream`].
 pub type ProjectSearchStream<'cu, 'f> = PaginatedStream<'f, ProjectSearchDelegate<'cu>>;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PaginatedResponse<T> {
+    pub hits: Vec<T>,
+    pub offset: usize,
+    pub limit: usize,
+    pub total_hits: usize,
+}
